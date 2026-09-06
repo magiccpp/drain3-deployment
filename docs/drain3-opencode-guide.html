@@ -896,7 +896,7 @@ def aggregate(days: int, agent_models: dict | None = None) -&gt; dict:
     return {
         "opencode": opencode,
         "saving": {"cost": saving["cost"], "by_how": dict(saving["by_how"]), "unpriced": saving["unpriced"],
-                   "agent_models": agent_models, "model_choices": sorted(k for k in prices if k.startswith(("anthropic/", "openai/", "azure/")))},
+                   "agent_models": agent_models, "model_choices": sorted(k for k in prices if k.startswith("anthropic/"))},
         "inspect": {"total": len(insp), "rewritten": sum(1 for r in insp if r["decision"] == "rewrite"),
                     "skipped": sum(1 for r in insp if r["decision"].startswith("skip")),
                     "sources": [str(p) for p in INSPECT_LOGS], "recent": recent_insp},
