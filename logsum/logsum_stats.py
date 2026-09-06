@@ -24,6 +24,52 @@ _icache: dict[str, dict] = {}
 OPENCODE_DB = Path(os.environ.get("LOGSUM_OPENCODE_DB") or Path.home() / ".local/share/opencode/opencode.db")
 
 
+PRICES_PATH = Path(os.environ.get("LOGSUM_PRICES") or Path(__file__).resolve().parent / "prices.json")
+_pcache: dict = {"mtime": None, "models": {}}
+CANONICAL_ORDER = ("openai", "azure", "anthropic", "google", "xai", "deepseek", "mistral", "moonshotai", "zai")
+
+
+def load_prices() -> dict:
+    """List prices per 1M tokens, {provider/model: {input, output, cache_read, cache_write}} from prices.json."""
+    try:
+        mtime = PRICES_PATH.stat().st_mtime
+    except FileNotFoundError:
+        return {}
+    if _pcache["mtime"] != mtime:
+        try:
+            _pcache.update(mtime=mtime, models=json.loads(PRICES_PATH.read_text(encoding="utf-8")).get("models", {}))
+        except (OSError, json.JSONDecodeError):
+            return {}
+    return _pcache["models"]
+
+
+def price_for(provider: str, model: str) -> tuple[dict | None, str]:
+    """Find a list price for a provider/model. Rule: exact match; then any gpt-* model under a vendor
+    other than openai is priced as Azure OpenAI; then the bare model id under a canonical provider."""
+    table = load_prices()
+    if not table:
+        return None, ""
+    key = f"{provider}/{model}"
+    if key in table:
+        return table[key], key
+    base = model.split("/")[-1]
+    for pre in ("openai.", "openai-", "global.openai.", "azure-"):
+        if base.startswith(pre):
+            base = base[len(pre):]
+    if provider != "openai" and base.startswith("gpt-") and f"azure/{base}" in table:
+        return table[f"azure/{base}"], f"azure/{base}"
+    for prov in CANONICAL_ORDER:
+        if f"{prov}/{base}" in table:
+            return table[f"{prov}/{base}"], f"{prov}/{base}"
+    return None, ""
+
+
+def estimate_cost(vals: dict, price: dict) -> float:
+    """USD for one message from token counts; reasoning tokens are billed as output."""
+    return (vals["input"] * price.get("input", 0) + (vals["output"] + vals["reasoning"]) * price.get("output", 0)
+            + vals["cache_read"] * price.get("cache_read", 0) + vals["cache_write"] * price.get("cache_write", 0)) / 1e6
+
+
 def load_opencode(days: int) -> dict:
     """Per model endpoint and per agent token usage from OpenCode, main vs subagent sessions kept apart."""
     empty = {"available": False, "db": str(OPENCODE_DB), "totals": {}, "by_model": [], "by_agent": [], "by_day": [], "sessions": 0}
@@ -37,15 +83,18 @@ def load_opencode(days: int) -> dict:
             try:
                 rows = con.execute(
                     "SELECT m.time_created, m.data, s.parent_id, s.id, s.title FROM message m JOIN session s ON s.id = m.session_id "
-                    "WHERE m.time_created >= ? AND m.data LIKE '%\"role\":\"assistant\"%'", (since_ms,)).fetchall()
+                    "WHERE m.time_created >= ?", (since_ms,)).fetchall()
             finally:
                 con.close()
             break
         except sqlite3.Error as e:
             if attempt == 1:
                 return {**empty, "error": str(e)}
-    by_model: dict[tuple, dict] = defaultdict(lambda: {"messages": 0, "input": 0, "output": 0, "reasoning": 0, "cache_read": 0, "cache_write": 0, "cost": 0.0})
-    by_agent: dict[tuple, dict] = defaultdict(lambda: {"messages": 0, "input": 0, "output": 0, "reasoning": 0, "cache_read": 0, "cache_write": 0, "cost": 0.0, "models": set()})
+    def bucket():
+        return {"messages": 0, "input": 0, "output": 0, "reasoning": 0, "cache_read": 0, "cache_write": 0,
+                "cost": 0.0, "cost_recorded": 0.0, "cost_estimated": 0.0, "estimated_msgs": 0, "unpriced_msgs": 0, "price_basis": set()}
+    by_model: dict[tuple, dict] = defaultdict(bucket)
+    by_agent: dict[tuple, dict] = defaultdict(lambda: {**bucket(), "models": set()})
     by_day: dict[str, dict] = defaultdict(lambda: {"main": 0, "subagent": 0, "cost": 0.0})
     sessions = set()
     for t_ms, data, parent_id, sid, title in rows:
@@ -61,29 +110,49 @@ def load_opencode(days: int) -> dict:
         role = "subagent" if parent_id else "main"
         agent = d.get("agent") or d.get("mode") or "?"
         vals = {"input": tok.get("input", 0) or 0, "output": tok.get("output", 0) or 0, "reasoning": tok.get("reasoning", 0) or 0,
-                "cache_read": cache.get("read", 0) or 0, "cache_write": cache.get("write", 0) or 0, "cost": float(d.get("cost") or 0)}
-        for bucket in (by_model[(model, role)], by_agent[(agent, role)]):
-            bucket["messages"] += 1
+                "cache_read": cache.get("read", 0) or 0, "cache_write": cache.get("write", 0) or 0}
+        recorded = float(d.get("cost") or 0)
+        estimated, basis, unpriced = 0.0, "", False
+        if recorded <= 0 and sum(vals.values()) > 0:
+            price, basis = price_for(d.get("providerID") or "", d.get("modelID") or "")
+            if price:
+                estimated = estimate_cost(vals, price)
+            else:
+                unpriced = True
+        vals["cost"] = recorded + estimated
+        for b in (by_model[(model, role)], by_agent[(agent, role)]):
+            b["messages"] += 1
             for k, v in vals.items():
-                bucket[k] += v
+                b[k] += v
+            b["cost_recorded"] += recorded
+            b["cost_estimated"] += estimated
+            b["estimated_msgs"] += 1 if estimated else 0
+            b["unpriced_msgs"] += 1 if unpriced else 0
+            if recorded > 0 or estimated > 0 or unpriced:
+                b["price_basis"].add(basis if basis else ("recorded" if recorded > 0 else "none"))
         by_agent[(agent, role)]["models"].add(model)
         day = datetime.fromtimestamp(t_ms / 1000).strftime("%Y-%m-%d")
         by_day[day][role] += vals["input"] + vals["output"] + vals["cache_read"] + vals["cache_write"]
         by_day[day]["cost"] += vals["cost"]
         sessions.add(sid)
-    totals = {"messages": 0, "input": 0, "output": 0, "reasoning": 0, "cache_read": 0, "cache_write": 0, "cost": 0.0}
+    totals = {"messages": 0, "input": 0, "output": 0, "reasoning": 0, "cache_read": 0, "cache_write": 0,
+              "cost": 0.0, "cost_recorded": 0.0, "cost_estimated": 0.0, "estimated_msgs": 0, "unpriced_msgs": 0}
     for v in by_model.values():
         for k in totals:
             totals[k] += v[k]
+
+    def finish(v: dict) -> dict:
+        out = {k: (sorted(x) if isinstance(x, set) else x) for k, x in v.items()}
+        return out
     day_list = []
     for i in range(days - 1, -1, -1):
         dd = (datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d")
         day_list.append({"day": dd, **by_day.get(dd, {"main": 0, "subagent": 0, "cost": 0.0})})
     return {
         "available": True, "db": str(OPENCODE_DB), "sessions": len(sessions), "totals": totals,
-        "by_model": sorted([{"model": m, "role": r, **v} for (m, r), v in by_model.items()], key=lambda x: (-x["cost"], x["model"], x["role"])),
-        "by_agent": sorted([{"agent": a, "role": r, **{k: v for k, v in vv.items() if k != "models"}, "models": sorted(vv["models"])}
-                            for (a, r), vv in by_agent.items()], key=lambda x: (x["role"], -x["cost"])),
+        "prices": {"file": str(PRICES_PATH), "models": len(load_prices())},
+        "by_model": sorted([{"model": m, "role": r, **finish(v)} for (m, r), v in by_model.items()], key=lambda x: (-x["cost"], x["model"], x["role"])),
+        "by_agent": sorted([{"agent": a, "role": r, **finish(vv)} for (a, r), vv in by_agent.items()], key=lambda x: (x["role"], -x["cost"])),
         "by_day": day_list,
     }
 
@@ -266,7 +335,9 @@ $('#tiles').innerHTML=[
 chart();opencode();latest();agents();recent();}
 function opencode(){const oc=data.opencode;if(!oc||!oc.available){$('#ocmeta').textContent='';$('#octiles').innerHTML='';$('#occhart').innerHTML='';$('#ocmodels').innerHTML=`<div class="empty">OpenCode database not found at ${esc(oc?oc.db:'?')}${oc&&oc.error?' ('+esc(oc.error)+')':''}. Mount it or set LOGSUM_OPENCODE_DB.</div>`;$('#ocagents').innerHTML='';return;}
 const t=oc.totals;$('#ocmeta').textContent=`${oc.sessions} sessions · ${fmt(t.messages)} assistant messages · ${esc(oc.db)}`;
-$('#octiles').innerHTML=[['Cost','hero','$'+t.cost.toFixed(4),'as computed by OpenCode'],['Input tokens','',k(t.input),'uncached prompt tokens'],['Output tokens','',k(t.output),(t.reasoning?fmt(t.reasoning)+' reasoning':'')],['Cache read','',k(t.cache_read),'prompt tokens served from cache'],['Cache write','',k(t.cache_write),'tokens written to cache']].map(([l,c,v,d])=>`<div class="tile ${c}"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
+const costNote=t.cost_estimated>0?`$${t.cost_recorded.toFixed(4)} recorded by OpenCode + $${t.cost_estimated.toFixed(4)} estimated from list prices (${t.estimated_msgs} msgs)`:'as recorded by OpenCode';
+const unpriced=t.unpriced_msgs>0?` · ${t.unpriced_msgs} msgs with no price found`:'';
+$('#octiles').innerHTML=[['Cost','hero','$'+t.cost.toFixed(4),costNote+unpriced],['Input tokens','',k(t.input),'uncached prompt tokens'],['Output tokens','',k(t.output),(t.reasoning?fmt(t.reasoning)+' reasoning':'')],['Cache read','',k(t.cache_read),'prompt tokens served from cache'],['Cache write','',k(t.cache_write),'tokens written to cache']].map(([l,c,v,d])=>`<div class="tile ${c}"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
 const rows=oc.by_day,W=900,H=200,L=48,R=12,T=14,B=30,iw=W-L-R,ih=H-T-B;const max=Math.max(1,...rows.map(r=>r.main+r.subagent));
 const nice=[1,2,5,10,20,50,100,200,500,1e3,2e3,5e3,1e4,2e4,5e4,1e5,2e5,5e5,1e6,2e6,5e6].find(s=>max/s<=5)||5e6;const top=Math.ceil(max/nice)*nice;const y=v=>T+ih-(v/top)*ih;
 let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="opencode tokens per day">`;for(let v=0;v<=top;v+=nice){s+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="${v?'var(--grid)':'var(--axis)'}"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${k(v)}</text>`;}
@@ -275,8 +346,10 @@ const n=rows.length,slot=iw/n,bw=Math.max(6,Math.min(36,slot*0.6));rows.forEach(
  s+=`<rect x="${L+slot*i}" y="${T}" width="${slot}" height="${ih}" fill="transparent" data-oc="${i}"/>`;const lab=n<=14||i%Math.ceil(n/12)===0?r.day.slice(5):'';if(lab)s+=`<text x="${x+bw/2}" y="${H-10}" text-anchor="middle" font-size="11" fill="var(--muted)">${lab}</text>`;});
 s+='</svg>';$('#occhart').innerHTML=s;const tip=$('#tip');$('#occhart').querySelectorAll('rect[data-oc]').forEach(el=>{el.addEventListener('mousemove',e=>{const r=rows[+el.dataset.oc];tip.style.display='block';tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY+14)+'px';tip.innerHTML=`<b>${r.day}</b><br>main ${fmt(r.main)} · subagents ${fmt(r.subagent)}<br>cost $${r.cost.toFixed(4)}`;});el.addEventListener('mouseleave',()=>tip.style.display='none');});
 const roleTag=r=>r==='subagent'?'<span class="muted">subagent</span>':'main';
-$('#ocmodels').innerHTML=oc.by_model.length?`<table><tr><th>model endpoint</th><th>role</th><th class="n">messages</th><th class="n">input</th><th class="n">output</th><th class="n">reasoning</th><th class="n">cache read</th><th class="n">cache write</th><th class="n">cost</th></tr>${oc.by_model.map(m=>`<tr><td><code>${esc(m.model)}</code></td><td>${roleTag(m.role)}</td><td class="n">${m.messages}</td><td class="n">${fmt(m.input)}</td><td class="n">${fmt(m.output)}</td><td class="n">${fmt(m.reasoning)}</td><td class="n">${fmt(m.cache_read)}</td><td class="n">${fmt(m.cache_write)}</td><td class="n">$${m.cost.toFixed(4)}</td></tr>`).join('')}</table>`:'<div class="empty">no OpenCode messages in range</div>';
-$('#ocagents').innerHTML=oc.by_agent.length?`<table><tr><th>agent</th><th>role</th><th>model(s)</th><th class="n">messages</th><th class="n">input</th><th class="n">output</th><th class="n">cache read</th><th class="n">cost</th></tr>${oc.by_agent.map(a=>`<tr><td>${esc(a.agent)}</td><td>${roleTag(a.role)}</td><td>${a.models.map(m=>`<code>${esc(m)}</code>`).join(' ')}</td><td class="n">${a.messages}</td><td class="n">${fmt(a.input)}</td><td class="n">${fmt(a.output)}</td><td class="n">${fmt(a.cache_read)}</td><td class="n">$${a.cost.toFixed(4)}</td></tr>`).join('')}</table>`:'';}
+const costCell=x=>{const est=x.cost_estimated>0;const t=est?`recorded $${x.cost_recorded.toFixed(4)} + estimated $${x.cost_estimated.toFixed(4)} (${x.estimated_msgs} msgs)`:'recorded by OpenCode';return `<td class="n" title="${t}">${est?'~':''}$${x.cost.toFixed(4)}${x.unpriced_msgs?` <span class="muted" title="${x.unpriced_msgs} messages had tokens but no price could be found">?</span>`:''}</td>`};
+const basis=x=>(x.price_basis||[]).filter(b=>b!=='recorded').map(b=>b==='none'?'<span class="muted">no price</span>':`<code>${esc(b)}</code>`).join(' ')||'<span class="muted">recorded</span>';
+$('#ocmodels').innerHTML=oc.by_model.length?`<table><tr><th>model endpoint</th><th>role</th><th class="n">messages</th><th class="n">input</th><th class="n">output</th><th class="n">reasoning</th><th class="n">cache read</th><th class="n">cache write</th><th class="n">cost</th><th>price basis</th></tr>${oc.by_model.map(m=>`<tr><td><code>${esc(m.model)}</code></td><td>${roleTag(m.role)}</td><td class="n">${m.messages}</td><td class="n">${fmt(m.input)}</td><td class="n">${fmt(m.output)}</td><td class="n">${fmt(m.reasoning)}</td><td class="n">${fmt(m.cache_read)}</td><td class="n">${fmt(m.cache_write)}</td>${costCell(m)}<td>${basis(m)}</td></tr>`).join('')}</table><div class="sub" style="margin-top:6px">~ = includes estimated cost. Messages OpenCode recorded at $0 (custom or proxy providers) are priced from list prices: exact provider/model if known, otherwise GPT models under any vendor other than openai at Azure OpenAI prices, otherwise the model id under its canonical provider. Table: ${esc(oc.prices?oc.prices.file:'')} (${oc.prices?oc.prices.models:0} models).</div>`:'<div class="empty">no OpenCode messages in range</div>';
+$('#ocagents').innerHTML=oc.by_agent.length?`<table><tr><th>agent</th><th>role</th><th>model(s)</th><th class="n">messages</th><th class="n">input</th><th class="n">output</th><th class="n">cache read</th><th class="n">cost</th></tr>${oc.by_agent.map(a=>`<tr><td>${esc(a.agent)}</td><td>${roleTag(a.role)}</td><td>${a.models.map(m=>`<code>${esc(m)}</code>`).join(' ')}</td><td class="n">${a.messages}</td><td class="n">${fmt(a.input)}</td><td class="n">${fmt(a.output)}</td><td class="n">${fmt(a.cache_read)}</td>${costCell(a)}</tr>`).join('')}</table>`:'';}
 function chart(){const rows=data.by_day,W=900,H=260,L=48,R=12,T=18,B=34,iw=W-L-R,ih=H-T-B;const max=Math.max(1,...rows.map(r=>r.tok_in));
 const nice=[1,2,5,10,20,50,100,200,500,1e3,2e3,5e3,1e4,2e4,5e4,1e5,2e5,5e5,1e6].find(s=>max/s<=5)||1e6;const top=Math.ceil(max/nice)*nice;const y=v=>T+ih-(v/top)*ih;
 let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="tokens per day">`;

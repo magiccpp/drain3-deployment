@@ -12,7 +12,7 @@ RUN pip install --no-cache-dir "drain3>=0.9.11" "tiktoken>=0.7" \
  && python -c "import tiktoken; tiktoken.get_encoding('cl100k_base')" \
  && useradd -u 1000 -m logsum && mkdir -p /data /inspect && chown -R logsum:logsum /data /app
 
-COPY logsum.py logsum_stats.py server.py ./
+COPY logsum.py logsum_stats.py server.py prices.json ./
 USER logsum
 VOLUME ["/data"]
 EXPOSE 8765

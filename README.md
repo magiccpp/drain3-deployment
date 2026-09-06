@@ -29,6 +29,7 @@ becomes
 | `logsum/logsum.py` | the summarizer: stdin log in, Drain3 summary out; records each call to `~/.local/share/logsum/stats.jsonl` |
 | `logsum/logsum_stats.py` | dashboard server (stdlib only): `http://localhost:8765`, JSON at `/api/stats` |
 | `logsum/server.py` | the container entrypoint: `POST /summarize` (warm Drain3 + tiktoken) plus the dashboard |
+| `logsum/prices.json`, `scripts/update-prices.py` | list prices (models.dev snapshot) used to cost messages that OpenCode recorded at $0 |
 | `logsum/Dockerfile`, `docker-compose.yml` | the image (python:3.12-slim, non-root, tiktoken table baked in) and the service definition |
 | `logsum/client/logsum` | host-side client with local and passthrough fallback |
 | `logsum/logsum-stats.service` | systemd user unit for the no-Docker install |
@@ -173,6 +174,22 @@ A session whose `parent_id` is set is a subagent session; that is the whole
 main-versus-subagent rule, and it holds no matter which model each side uses.
 Set `LOGSUM_OPENCODE_DB` (or `OPENCODE_DATA` for the container) if the database
 lives elsewhere.
+
+**Pricing for custom providers.** OpenCode only knows list prices for the
+providers in models.dev; a message sent through your own gateway (say
+`my-cortex/gpt-5.6-luna`) is recorded with cost 0. The dashboard prices those
+messages itself from `logsum/prices.json` (list prices per 1M tokens, generated
+from models.dev by `scripts/update-prices.py`), using this rule:
+
+1. exact `provider/model` if present in the table;
+2. otherwise a `gpt-*` model under any vendor other than `openai` is priced as
+   **Azure OpenAI** (`azure/<model>`);
+3. otherwise the bare model id under its canonical provider (`openai`, `anthropic`, `google`, ...).
+
+Reasoning tokens are billed at the output price. Estimated amounts are marked
+with `~` in the tables and split out on the cost tile; a message with tokens but
+no matching price shows `?` and is counted as unpriced rather than as free. Point
+`LOGSUM_PRICES` at your own JSON to override or extend the table.
 
 ## Tuning
 
