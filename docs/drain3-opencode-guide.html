@@ -370,8 +370,10 @@ tail -n 1 ~/.local/share/logsum/stats.jsonl   <span class="cm"># the record the 
     <div class="step-head"><div class="marker">4</div><h2>Install OpenCode and give it a model</h2></div>
     <div class="step-body">
       <figure class="code"><figcaption><span>shell</span><button type="button" data-copy>Copy</button></figcaption><pre>curl -fsSL https://opencode.ai/install | bash
-export PATH="$HOME/.opencode/bin:$PATH"     <span class="cm"># the installer adds this to your shell rc too</span>
+echo 'export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$PATH"' &gt;&gt; ~/.bashrc
+source ~/.bashrc
 opencode --version</pre></figure>
+      <aside class="note"><strong>PATH is on you.</strong> The installer drops the binary in <code>~/.opencode/bin</code> and, at least in version 1.18, does not add that directory to any shell rc file. If a new terminal says "opencode: command not found", this is why. The same line covers <code>~/.local/bin</code>, where uv and the logsum command live.</aside>
       <p>OpenCode needs a provider. Either run <code>opencode auth login</code> and follow the prompts, or export a key before starting it. Keys in a <code>.env</code> file in the project directory are loaded automatically.</p>
       <figure class="code"><figcaption><span>shell</span><button type="button" data-copy>Copy</button></figcaption><pre>export ANTHROPIC_API_KEY=...        <span class="cm"># or OPENAI_API_KEY, OPENROUTER_API_KEY, ...</span>
 opencode models anthropic | head       <span class="cm"># lists ids like anthropic/claude-haiku-4-5</span></pre></figure>

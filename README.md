@@ -95,6 +95,17 @@ commands that read logs (journalctl, dmesg, docker/kubectl logs, cat/tail/Get-Co
 on `*.log`, `/var/log`, `syslog`, `logs/`), and leaves alone follow mode, commands
 that already end in a filter, real file redirects, and anything containing `nologsum`.
 
+### OpenCode itself
+
+```bash
+curl -fsSL https://opencode.ai/install | bash
+echo 'export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc
+opencode --version
+```
+
+The installer puts the binary in `~/.opencode/bin` but does not always add that
+directory to your shell's PATH, so add the line yourself if `opencode` is not found.
+
 ## Test
 
 ```bash
