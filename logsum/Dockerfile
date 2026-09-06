@@ -4,6 +4,7 @@ FROM python:3.12-slim
 ENV TIKTOKEN_CACHE_DIR=/app/.tiktoken \
     LOGSUM_STATS=/data/stats.jsonl \
     LOGSUM_INSPECT_LOGS=/inspect/opencode.log:/inspect/claude-code.log \
+    LOGSUM_OPENCODE_DB=/opencode-data/opencode.db \
     PYTHONUNBUFFERED=1
 
 WORKDIR /app

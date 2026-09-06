@@ -1,0 +1,25 @@
+// OpenCode configuration: main agent on GPT-5.6 Terra, everything delegated (explore, general, log checks,
+// titles) on GPT-5.6 Luna. Install: cp opencode/opencode.jsonc ~/.config/opencode/opencode.jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  // primary agents (build, plan) use this unless overridden below
+  "model": "openai/gpt-5.6-terra",
+  // cheap model for housekeeping such as session titles
+  "small_model": "openai/gpt-5.6-luna",
+
+  "agent": {
+    // built-in subagents: read-only exploration and general multi-step delegation
+    "explore": { "model": "openai/gpt-5.6-luna" },
+    "general": { "model": "openai/gpt-5.6-luna" },
+
+    // custom subagent for log checking; its bash output goes through logsum (Drain3) via the plugin
+    "logs": {
+      "mode": "subagent",
+      "model": "openai/gpt-5.6-luna",
+      "description": "Checks logs: files, journalctl, docker/kubectl logs. Reports error and warning patterns with counts, time spans and distinct parameters. Use for any log-reading task.",
+      "prompt": "You check logs for the main agent. Read them with the bash tool (tail -n N <file>, journalctl, docker logs, kubectl logs). Log output arrives pre-summarized as Drain3 templates with counts; report the error and warning templates, their counts, time spans and distinct parameter values, plus any rare lines verbatim. Never paste raw log lines back. Do not modify any file.",
+      "permission": { "edit": "deny" }
+    }
+  }
+}

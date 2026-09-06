@@ -190,6 +190,24 @@ opencode --version</pre></figure>
       <p>OpenCode needs a provider. Either run <code>opencode auth login</code> and follow the prompts, or export a key before starting it. Keys in a <code>.env</code> file in the project directory are loaded automatically.</p>
       <figure class="code"><figcaption><span>shell</span><button type="button" data-copy>Copy</button></figcaption><pre>export ANTHROPIC_API_KEY=...        <span class="cm"># or OPENAI_API_KEY, OPENROUTER_API_KEY, ...</span>
 opencode models anthropic | head       <span class="cm"># lists ids like anthropic/claude-haiku-4-5</span></pre></figure>
+      <p>Pick the models once, in <code>~/.config/opencode/opencode.jsonc</code>. The example below runs the main agent on GPT-5.6 Terra and everything delegated on GPT-5.6 Luna, and adds a <code>logs</code> subagent whose only job is reading logs through bash, which is what the plugin in step 5 summarizes. Subagents run in child sessions, which the dashboard in step 7 uses to keep their usage apart from the main agent's.</p>
+      <figure class="code"><figcaption><span>~/.config/opencode/opencode.jsonc</span><button type="button" data-copy>Copy</button></figcaption><pre>{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "openai/gpt-5.6-terra",
+  "small_model": "openai/gpt-5.6-luna",
+  "agent": {
+    "explore": { "model": "openai/gpt-5.6-luna" },
+    "general": { "model": "openai/gpt-5.6-luna" },
+    "logs": {
+      "mode": "subagent",
+      "model": "openai/gpt-5.6-luna",
+      "description": "Checks logs: files, journalctl, docker/kubectl logs. Reports error and warning patterns with counts, time spans and distinct parameters.",
+      "prompt": "You check logs for the main agent. Read them with the bash tool (tail -n N &lt;file&gt;, journalctl, docker logs). Output arrives pre-summarized as Drain3 templates with counts; report the error and warning templates, their counts, time spans and distinct parameter values, plus rare lines verbatim. Never paste raw log lines back. Do not modify any file.",
+      "permission": { "edit": "deny" }
+    }
+  }
+}</pre></figure>
+      <p><code>opencode agent list</code> should now show <code>logs (subagent)</code>. In the verification run, "delegate to the logs subagent: check app.log" produced a child session on Luna whose report matched the Drain3 counts exactly, while the parent session stayed on Terra.</p>
       <aside class="note warn"><strong>Organization-scoped Anthropic keys</strong> fail with "this request must include the anthropic-workspace-id header". Either use a workspace-scoped key, or add the header in <code>~/.config/opencode/opencode.json</code> under <code>provider.anthropic.options.headers</code>.</aside>
     </div>
   </section>
@@ -240,6 +258,7 @@ opencode export "$SID" | grep -oE '\[logsum\] [0-9]+ lines -&gt; [0-9]+ template
       <ul>
         <li><strong>Five tiles.</strong> Calls (summarized versus passed through), tokens before, tokens after, percent saved, and the estimated cost saved at a price per million input tokens you can edit. The price is remembered in the browser.</li>
         <li><strong>Tokens per day.</strong> One bar per day, blue for what the model actually read, orange stacked on top for what logsum removed. Hover a day for the numbers; the "Show as table" button gives the same data as text.</li>
+        <li><strong>OpenCode usage.</strong> Read from OpenCode's own SQLite database (read-only): cost and token tiles, tokens per day split main agent versus subagents, one row per model endpoint <em>and</em> role, and one row per agent with the models it used. A session with a <code>parent_id</code> is a subagent session, so a Terra main agent and a Luna subagent in the same conversation never blend into one number.</li>
         <li><strong>Latest summary, how Drain3 saw it.</strong> The five most frequent templates of the most recent call, with counts and the wildcards highlighted. This is the quickest way to check that the masks fit your logs.</li>
         <li><strong>By agent.</strong> One row per caller, so you can compare what OpenCode and any other agent saved.</li>
         <li><strong>Recent calls.</strong> The last 60 calls with command, lines, tokens, percent saved and processing time. Each row expands to its templates.</li>

@@ -6,6 +6,7 @@ Reads ~/.local/share/logsum/stats.jsonl (or LOGSUM_STATS). Pure standard library
 import argparse
 import json
 import os
+import sqlite3
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
@@ -18,6 +19,73 @@ STATS_PATH = Path(os.environ.get("LOGSUM_STATS") or Path.home() / ".local/share/
 INSPECT_LOGS = [Path(p) for p in os.environ.get("LOGSUM_INSPECT_LOGS", "").split(":") if p]
 _cache = {"mtime": None, "rows": []}
 _icache: dict[str, dict] = {}
+# OpenCode's local SQLite database (read-only). Assistant messages carry modelID/providerID, agent,
+# tokens {input, output, reasoning, cache{read,write}} and cost; sessions with a parent_id are subagent runs.
+OPENCODE_DB = Path(os.environ.get("LOGSUM_OPENCODE_DB") or Path.home() / ".local/share/opencode/opencode.db")
+
+
+def load_opencode(days: int) -> dict:
+    """Per model endpoint and per agent token usage from OpenCode, main vs subagent sessions kept apart."""
+    empty = {"available": False, "db": str(OPENCODE_DB), "totals": {}, "by_model": [], "by_agent": [], "by_day": [], "sessions": 0}
+    if not OPENCODE_DB.exists():
+        return empty
+    since_ms = int((time.time() - days * 86400) * 1000)
+    rows = []
+    for attempt in range(2):  # immutable=1 lets us read a WAL database from a read-only mount; retry once on a torn read
+        try:
+            con = sqlite3.connect(f"file:{OPENCODE_DB}?immutable=1", uri=True, timeout=1)
+            try:
+                rows = con.execute(
+                    "SELECT m.time_created, m.data, s.parent_id, s.id, s.title FROM message m JOIN session s ON s.id = m.session_id "
+                    "WHERE m.time_created >= ? AND m.data LIKE '%\"role\":\"assistant\"%'", (since_ms,)).fetchall()
+            finally:
+                con.close()
+            break
+        except sqlite3.Error as e:
+            if attempt == 1:
+                return {**empty, "error": str(e)}
+    by_model: dict[tuple, dict] = defaultdict(lambda: {"messages": 0, "input": 0, "output": 0, "reasoning": 0, "cache_read": 0, "cache_write": 0, "cost": 0.0})
+    by_agent: dict[tuple, dict] = defaultdict(lambda: {"messages": 0, "input": 0, "output": 0, "reasoning": 0, "cache_read": 0, "cache_write": 0, "cost": 0.0, "models": set()})
+    by_day: dict[str, dict] = defaultdict(lambda: {"main": 0, "subagent": 0, "cost": 0.0})
+    sessions = set()
+    for t_ms, data, parent_id, sid, title in rows:
+        try:
+            d = json.loads(data)
+        except json.JSONDecodeError:
+            continue
+        if d.get("role") != "assistant":
+            continue
+        tok = d.get("tokens") or {}
+        cache = tok.get("cache") or {}
+        model = f"{d.get('providerID') or '?'}/{d.get('modelID') or '?'}"
+        role = "subagent" if parent_id else "main"
+        agent = d.get("agent") or d.get("mode") or "?"
+        vals = {"input": tok.get("input", 0) or 0, "output": tok.get("output", 0) or 0, "reasoning": tok.get("reasoning", 0) or 0,
+                "cache_read": cache.get("read", 0) or 0, "cache_write": cache.get("write", 0) or 0, "cost": float(d.get("cost") or 0)}
+        for bucket in (by_model[(model, role)], by_agent[(agent, role)]):
+            bucket["messages"] += 1
+            for k, v in vals.items():
+                bucket[k] += v
+        by_agent[(agent, role)]["models"].add(model)
+        day = datetime.fromtimestamp(t_ms / 1000).strftime("%Y-%m-%d")
+        by_day[day][role] += vals["input"] + vals["output"] + vals["cache_read"] + vals["cache_write"]
+        by_day[day]["cost"] += vals["cost"]
+        sessions.add(sid)
+    totals = {"messages": 0, "input": 0, "output": 0, "reasoning": 0, "cache_read": 0, "cache_write": 0, "cost": 0.0}
+    for v in by_model.values():
+        for k in totals:
+            totals[k] += v[k]
+    day_list = []
+    for i in range(days - 1, -1, -1):
+        dd = (datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d")
+        day_list.append({"day": dd, **by_day.get(dd, {"main": 0, "subagent": 0, "cost": 0.0})})
+    return {
+        "available": True, "db": str(OPENCODE_DB), "sessions": len(sessions), "totals": totals,
+        "by_model": sorted([{"model": m, "role": r, **v} for (m, r), v in by_model.items()], key=lambda x: (-x["cost"], x["model"], x["role"])),
+        "by_agent": sorted([{"agent": a, "role": r, **{k: v for k, v in vv.items() if k != "models"}, "models": sorted(vv["models"])}
+                            for (a, r), vv in by_agent.items()], key=lambda x: (x["role"], -x["cost"])),
+        "by_day": day_list,
+    }
 
 
 def load_inspections() -> list[dict]:
@@ -107,6 +175,7 @@ def aggregate(days: int) -> dict:
     agents_out.sort(key=lambda x: (-x["tok_in"], -x["inspected"]))
     recent_insp = sorted(insp, key=lambda r: r["ts"], reverse=True)[:40]
     return {
+        "opencode": load_opencode(days),
         "inspect": {"total": len(insp), "rewritten": sum(1 for r in insp if r["decision"] == "rewrite"),
                     "skipped": sum(1 for r in insp if r["decision"].startswith("skip")),
                     "sources": [str(p) for p in INSPECT_LOGS], "recent": recent_insp},
@@ -130,8 +199,8 @@ def aggregate(days: int) -> dict:
 PAGE = r"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>logsum stats</title>
 <style>
-:root{color-scheme:light;--page:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--grid:#e1e0d9;--axis:#c3c2b7;--ring:rgba(11,11,11,.10);--s1:#2a78d6;--s2:#eb6834;--good:#006300;--wild:#8a4b00}
-@media (prefers-color-scheme:dark){:root{color-scheme:dark;--page:#0d0d0d;--surface:#1a1a19;--ink:#fff;--ink2:#c3c2b7;--muted:#898781;--grid:#2c2c2a;--axis:#383835;--ring:rgba(255,255,255,.10);--s1:#3987e5;--s2:#d95926;--good:#0ca30c;--wild:#e0a24a}}
+:root{color-scheme:light;--page:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--grid:#e1e0d9;--axis:#c3c2b7;--ring:rgba(11,11,11,.10);--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--good:#006300;--wild:#8a4b00}
+@media (prefers-color-scheme:dark){:root{color-scheme:dark;--page:#0d0d0d;--surface:#1a1a19;--ink:#fff;--ink2:#c3c2b7;--muted:#898781;--grid:#2c2c2a;--axis:#383835;--ring:rgba(255,255,255,.10);--s1:#3987e5;--s2:#d95926;--s3:#199e70;--good:#0ca30c;--wild:#e0a24a}}
 *{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
 main{max-width:1080px;margin:0 auto;padding:28px 20px 60px;display:grid;gap:22px}
 h1{font-size:1.35rem;margin:0;font-weight:600}h2{font-size:1rem;margin:0;font-weight:600;color:var(--ink)}
@@ -163,6 +232,13 @@ details summary{cursor:pointer;color:var(--ink2)}
 <div class="tiles" id="tiles"></div>
 <section class="panel"><div class="row" style="justify-content:space-between"><h2>Tokens per day</h2><div class="row"><div class="legend"><span><i style="background:var(--s1)"></i>read by the model</span><span><i style="background:var(--s2)"></i>saved by logsum</span></div><button id="tableToggle" type="button">Show as table</button></div></div>
   <div id="chart"></div><div class="wrap" id="daytable" hidden></div></section>
+<section class="panel"><div class="row" style="justify-content:space-between"><h2>OpenCode usage, per model endpoint</h2><div class="sub" id="ocmeta"></div></div>
+  <div class="tiles" id="octiles"></div>
+  <div class="row" style="justify-content:space-between;margin-top:6px"><div class="legend"><span><i style="background:var(--s1)"></i>main agent</span><span><i style="background:var(--s3)"></i>subagents</span><span class="muted">tokens per day (input + output + cache)</span></div></div>
+  <div id="occhart"></div>
+  <div class="wrap" id="ocmodels"></div>
+  <h2 style="margin-top:6px">OpenCode usage, per agent</h2><div class="sub">Main and subagent sessions are kept apart, so a build agent on one model and an explore or logs subagent on another never get mixed.</div>
+  <div class="wrap" id="ocagents"></div></section>
 <section class="panel"><h2>Latest summary, how Drain3 saw it</h2><div id="latest" class="tpl"></div></section>
 <section class="panel"><h2>By agent</h2><div class="wrap" id="agents"></div></section>
 <section class="panel"><h2>Recent summaries</h2><div class="wrap" id="recent"></div></section>
@@ -187,7 +263,20 @@ $('#tiles').innerHTML=[
  ['Saved','hero',`${(pct*100).toFixed(0)}%`,`${fmt(saved)} tokens not sent`],
  ['Est. cost saved','hero','$'+(saved/1e6*price).toFixed(2),`at $${price}/Mtok input`]
 ].map(([l,c,v,d])=>`<div class="tile ${c}"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
-chart();latest();agents();recent();}
+chart();opencode();latest();agents();recent();}
+function opencode(){const oc=data.opencode;if(!oc||!oc.available){$('#ocmeta').textContent='';$('#octiles').innerHTML='';$('#occhart').innerHTML='';$('#ocmodels').innerHTML=`<div class="empty">OpenCode database not found at ${esc(oc?oc.db:'?')}${oc&&oc.error?' ('+esc(oc.error)+')':''}. Mount it or set LOGSUM_OPENCODE_DB.</div>`;$('#ocagents').innerHTML='';return;}
+const t=oc.totals;$('#ocmeta').textContent=`${oc.sessions} sessions · ${fmt(t.messages)} assistant messages · ${esc(oc.db)}`;
+$('#octiles').innerHTML=[['Cost','hero','$'+t.cost.toFixed(4),'as computed by OpenCode'],['Input tokens','',k(t.input),'uncached prompt tokens'],['Output tokens','',k(t.output),(t.reasoning?fmt(t.reasoning)+' reasoning':'')],['Cache read','',k(t.cache_read),'prompt tokens served from cache'],['Cache write','',k(t.cache_write),'tokens written to cache']].map(([l,c,v,d])=>`<div class="tile ${c}"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
+const rows=oc.by_day,W=900,H=200,L=48,R=12,T=14,B=30,iw=W-L-R,ih=H-T-B;const max=Math.max(1,...rows.map(r=>r.main+r.subagent));
+const nice=[1,2,5,10,20,50,100,200,500,1e3,2e3,5e3,1e4,2e4,5e4,1e5,2e5,5e5,1e6,2e6,5e6].find(s=>max/s<=5)||5e6;const top=Math.ceil(max/nice)*nice;const y=v=>T+ih-(v/top)*ih;
+let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="opencode tokens per day">`;for(let v=0;v<=top;v+=nice){s+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="${v?'var(--grid)':'var(--axis)'}"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${k(v)}</text>`;}
+const n=rows.length,slot=iw/n,bw=Math.max(6,Math.min(36,slot*0.6));rows.forEach((r,i)=>{const x=L+slot*i+(slot-bw)/2;const ym=y(r.main),yt=y(r.main+r.subagent);
+ if(r.main>0)s+=`<rect x="${x}" y="${ym}" width="${bw}" height="${T+ih-ym}" fill="var(--s1)"/>`;if(r.subagent>0)s+=`<rect x="${x}" y="${yt}" width="${bw}" height="${Math.max(0,(ym-2)-yt)}" rx="3" fill="var(--s3)"/>`;
+ s+=`<rect x="${L+slot*i}" y="${T}" width="${slot}" height="${ih}" fill="transparent" data-oc="${i}"/>`;const lab=n<=14||i%Math.ceil(n/12)===0?r.day.slice(5):'';if(lab)s+=`<text x="${x+bw/2}" y="${H-10}" text-anchor="middle" font-size="11" fill="var(--muted)">${lab}</text>`;});
+s+='</svg>';$('#occhart').innerHTML=s;const tip=$('#tip');$('#occhart').querySelectorAll('rect[data-oc]').forEach(el=>{el.addEventListener('mousemove',e=>{const r=rows[+el.dataset.oc];tip.style.display='block';tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY+14)+'px';tip.innerHTML=`<b>${r.day}</b><br>main ${fmt(r.main)} · subagents ${fmt(r.subagent)}<br>cost $${r.cost.toFixed(4)}`;});el.addEventListener('mouseleave',()=>tip.style.display='none');});
+const roleTag=r=>r==='subagent'?'<span class="muted">subagent</span>':'main';
+$('#ocmodels').innerHTML=oc.by_model.length?`<table><tr><th>model endpoint</th><th>role</th><th class="n">messages</th><th class="n">input</th><th class="n">output</th><th class="n">reasoning</th><th class="n">cache read</th><th class="n">cache write</th><th class="n">cost</th></tr>${oc.by_model.map(m=>`<tr><td><code>${esc(m.model)}</code></td><td>${roleTag(m.role)}</td><td class="n">${m.messages}</td><td class="n">${fmt(m.input)}</td><td class="n">${fmt(m.output)}</td><td class="n">${fmt(m.reasoning)}</td><td class="n">${fmt(m.cache_read)}</td><td class="n">${fmt(m.cache_write)}</td><td class="n">$${m.cost.toFixed(4)}</td></tr>`).join('')}</table>`:'<div class="empty">no OpenCode messages in range</div>';
+$('#ocagents').innerHTML=oc.by_agent.length?`<table><tr><th>agent</th><th>role</th><th>model(s)</th><th class="n">messages</th><th class="n">input</th><th class="n">output</th><th class="n">cache read</th><th class="n">cost</th></tr>${oc.by_agent.map(a=>`<tr><td>${esc(a.agent)}</td><td>${roleTag(a.role)}</td><td>${a.models.map(m=>`<code>${esc(m)}</code>`).join(' ')}</td><td class="n">${a.messages}</td><td class="n">${fmt(a.input)}</td><td class="n">${fmt(a.output)}</td><td class="n">${fmt(a.cache_read)}</td><td class="n">$${a.cost.toFixed(4)}</td></tr>`).join('')}</table>`:'';}
 function chart(){const rows=data.by_day,W=900,H=260,L=48,R=12,T=18,B=34,iw=W-L-R,ih=H-T-B;const max=Math.max(1,...rows.map(r=>r.tok_in));
 const nice=[1,2,5,10,20,50,100,200,500,1e3,2e3,5e3,1e4,2e4,5e4,1e5,2e5,5e5,1e6].find(s=>max/s<=5)||1e6;const top=Math.ceil(max/nice)*nice;const y=v=>T+ih-(v/top)*ih;
 let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="tokens per day">`;

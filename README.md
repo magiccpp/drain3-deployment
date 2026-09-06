@@ -33,6 +33,7 @@ becomes
 | `logsum/client/logsum` | host-side client with local and passthrough fallback |
 | `logsum/logsum-stats.service` | systemd user unit for the no-Docker install |
 | `opencode/logsum.js` | OpenCode plugin (`tool.execute.after`): replaces log output with the summary |
+| `opencode/opencode.jsonc` | OpenCode model config: Terra main, Luna for explore/general/titles, plus a `logs` subagent |
 | `claude-code/logsum-hook.js` | Claude Code PreToolUse hook for Windows: pipes log commands through `logsum` in WSL2 |
 | `claude-code/install.ps1` | installs the hook and merges it into `~/.claude/settings.json` |
 | `scripts/docker-up.sh`, `scripts/docker-down.sh`, `scripts/install-compose.sh` | container lifecycle |
@@ -106,6 +107,21 @@ opencode --version
 The installer puts the binary in `~/.opencode/bin` but does not always add that
 directory to your shell's PATH, so add the line yourself if `opencode` is not found.
 
+### Model configuration (Terra for the main agent, Luna for delegated work)
+
+```bash
+scripts/install-opencode-config.sh      # copies opencode/opencode.jsonc to ~/.config/opencode/, backs up any existing one
+```
+
+`opencode/opencode.jsonc` sets `model` to `openai/gpt-5.6-terra` for the primary
+agents (build, plan), `small_model` to `openai/gpt-5.6-luna` for housekeeping such
+as titles, and puts the built-in `explore` and `general` subagents on Luna. It also
+defines a `logs` subagent on Luna whose prompt tells it to read logs with bash (so
+the plugin summarizes them) and report templates, counts and time spans instead of
+raw lines. Ask the main agent to "delegate to the logs subagent" or let it pick the
+agent from the description. Subagents run in child sessions, which is how the
+dashboard tells them apart.
+
 ## Test
 
 ```bash
@@ -125,6 +141,24 @@ estimated cost; a tokens-per-day chart; the latest summary as Drain3 saw it;
 per-agent totals; recent summaries; and every shell command the hooks looked at
 with the decision taken. Token counts are exact cl100k when tiktoken is installed
 (it is, via `logsum/pyproject.toml`).
+
+**OpenCode usage** is read straight from OpenCode's SQLite database
+(`~/.local/share/opencode/opencode.db`, mounted read-only into the container and
+opened with `immutable=1`). Every assistant message carries its provider, model,
+agent, input, output, reasoning, cache-read and cache-write tokens and the cost
+OpenCode computed. The dashboard shows:
+
+- cost and token tiles for the selected range;
+- tokens per day, main agent versus subagents;
+- a table per **model endpoint and role**, so `openai/gpt-5.6-terra · main` and
+  `openai/gpt-5.6-luna · subagent` are separate rows even inside one conversation;
+- a table per **agent** (build, plan, explore, general, logs, ...) with the models
+  it actually used.
+
+A session whose `parent_id` is set is a subagent session; that is the whole
+main-versus-subagent rule, and it holds no matter which model each side uses.
+Set `LOGSUM_OPENCODE_DB` (or `OPENCODE_DATA` for the container) if the database
+lives elsewhere.
 
 ## Tuning
 

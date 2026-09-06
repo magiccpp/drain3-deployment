@@ -6,16 +6,19 @@ REPO="$(cd "$(dirname "$0")/.." && pwd)"
 export LOGSUM_BIND="127.0.0.1"
 export OPENCODE_LOG="$HOME/.config/opencode/logsum-plugin.log"
 export CLAUDE_HOOK_LOG="/dev/null"
+export OPENCODE_DATA="$HOME/.local/share/opencode"
 while [ $# -gt 0 ]; do
   case "$1" in
     --bind) export LOGSUM_BIND="$2"; shift 2 ;;
     --claude-hook-log) export CLAUDE_HOOK_LOG="$2"; shift 2 ;;
+    --opencode-data) export OPENCODE_DATA="$2"; shift 2 ;;
     *) echo "unknown option $1"; exit 2 ;;
   esac
 done
 # a bind-mounted path that does not exist would be created as a directory by Docker; make sure they are files
 mkdir -p "$(dirname "$OPENCODE_LOG")"; [ -e "$OPENCODE_LOG" ] || : > "$OPENCODE_LOG"
 [ "$CLAUDE_HOOK_LOG" = /dev/null ] || [ -e "$CLAUDE_HOOK_LOG" ] || : > "$CLAUDE_HOOK_LOG"
+mkdir -p "$OPENCODE_DATA"   # OpenCode's data dir (opencode.db); an empty dir just means "no usage yet"
 
 # the dashboard service from scripts/install.sh would fight for port 8765
 if systemctl --user is-active logsum-stats.service >/dev/null 2>&1; then
@@ -32,7 +35,8 @@ else
   docker rm -f logsum >/dev/null 2>&1 || true
   docker volume create logsum-data >/dev/null
   docker run -d --name logsum --restart unless-stopped -p "$LOGSUM_BIND:8765:8765" \
-    -v logsum-data:/data -v "$OPENCODE_LOG:/inspect/opencode.log:ro" -v "$CLAUDE_HOOK_LOG:/inspect/claude-code.log:ro" logsum:latest
+    -v logsum-data:/data -v "$OPENCODE_LOG:/inspect/opencode.log:ro" -v "$CLAUDE_HOOK_LOG:/inspect/claude-code.log:ro" \
+    -v "$OPENCODE_DATA:/opencode-data:ro" logsum:latest
 fi
 
 # host command -> service (with local/passthrough fallback)
