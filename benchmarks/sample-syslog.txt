@@ -1,0 +1,800 @@
+2026-09-06T10:00:00Z systemd[5069]: started session 32 of user deploy
+2026-09-06T10:00:01Z etcd[2389]: health check passed for backend-33 in 224ms
+2026-09-06T10:00:02Z etcd[1718]: request GET /api/v1/pods latency=546ms status=200
+2026-09-06T10:00:03Z etcd[3450]: request GET /api/v1/pods latency=104ms status=200
+2026-09-06T10:00:04Z systemd[9089]: ERROR failed to pull image registry.local/app:17: manifest unknown
+2026-09-06T10:00:05Z scheduler[5558]: connection from 10.0.47.185:56080 accepted
+2026-09-06T10:00:06Z kube-proxy[4009]: warning: disk usage on /var/lib at 96% (threshold 85%)
+2026-09-06T10:00:07Z nginx[5038]: leader election: renewing lease for node-33
+2026-09-06T10:00:08Z kube-proxy[9982]: ERROR failed to pull image registry.local/app:22: manifest unknown
+2026-09-06T10:00:09Z api-server[4066]: ERROR failed to pull image registry.local/app:25: manifest unknown
+2026-09-06T10:00:10Z sshd[4360]: reconciling deployment default/web-3: 3 replicas ready
+2026-09-06T10:00:11Z nginx[1414]: health check passed for backend-9 in 776ms
+2026-09-06T10:00:12Z systemd[3958]: ERROR failed to pull image registry.local/app:18: manifest unknown
+2026-09-06T10:00:13Z nginx[5413]: warning: disk usage on /var/lib at 82% (threshold 85%)
+2026-09-06T10:00:14Z nginx[4540]: request GET /api/v1/pods latency=344ms status=200
+2026-09-06T10:00:15Z systemd[1118]: request GET /api/v1/pods latency=175ms status=200
+2026-09-06T10:00:16Z sshd[8852]: request GET /api/v1/pods latency=225ms status=200
+2026-09-06T10:00:17Z nginx[6509]: request GET /api/v1/pods latency=194ms status=200
+2026-09-06T10:00:18Z nginx[3288]: request GET /api/v1/pods latency=119ms status=200
+2026-09-06T10:00:19Z api-server[7073]: leader election: renewing lease for node-4
+2026-09-06T10:00:20Z scheduler[3054]: request GET /api/v1/pods latency=74ms status=200
+2026-09-06T10:00:21Z etcd[5974]: connection from 10.0.239.11:40115 accepted
+2026-09-06T10:00:22Z systemd[2753]: health check passed for backend-4 in 209ms
+2026-09-06T10:00:23Z scheduler[6815]: TLS handshake error from 10.0.128.31:40135: EOF
+2026-09-06T10:00:24Z api-server[303]: ERROR failed to pull image registry.local/app:17: manifest unknown
+2026-09-06T10:00:25Z kube-proxy[4034]: health check passed for backend-35 in 47ms
+2026-09-06T10:00:26Z sshd[2268]: health check passed for backend-23 in 690ms
+2026-09-06T10:00:27Z api-server[3250]: reconciling deployment default/web-6: 3 replicas ready
+2026-09-06T10:00:28Z sshd[9408]: TLS handshake error from 10.0.81.62:15644: EOF
+2026-09-06T10:00:29Z systemd[866]: started session 37 of user deploy
+2026-09-06T10:00:30Z api-server[8083]: leader election: renewing lease for node-11
+2026-09-06T10:00:31Z systemd[7749]: ERROR failed to pull image registry.local/app:21: manifest unknown
+2026-09-06T10:00:32Z nginx[6683]: connection from 10.0.212.49:36974 accepted
+2026-09-06T10:00:33Z api-server[1702]: started session 1 of user deploy
+2026-09-06T10:00:34Z sshd[3085]: warning: disk usage on /var/lib at 77% (threshold 85%)
+2026-09-06T10:00:35Z etcd[7521]: request GET /api/v1/pods latency=407ms status=200
+2026-09-06T10:00:36Z systemd[2630]: request GET /api/v1/pods latency=534ms status=200
+2026-09-06T10:00:37Z etcd[6111]: reconciling deployment default/web-17: 3 replicas ready
+2026-09-06T10:00:38Z systemd[8913]: connection from 10.0.253.183:43238 accepted
+2026-09-06T10:00:39Z kube-proxy[4546]: leader election: renewing lease for node-1
+2026-09-06T10:00:40Z systemd[684]: TLS handshake error from 10.0.172.203:25088: EOF
+2026-09-06T10:00:41Z scheduler[9086]: connection from 10.0.138.42:10816 accepted
+2026-09-06T10:00:42Z etcd[3042]: leader election: renewing lease for node-16
+2026-09-06T10:00:43Z scheduler[1880]: ERROR failed to pull image registry.local/app:22: manifest unknown
+2026-09-06T10:00:44Z scheduler[2000]: request GET /api/v1/pods latency=862ms status=200
+2026-09-06T10:00:45Z sshd[9348]: health check passed for backend-10 in 344ms
+2026-09-06T10:00:46Z nginx[6404]: started session 13 of user deploy
+2026-09-06T10:00:47Z scheduler[9682]: connection from 10.0.50.101:37493 accepted
+2026-09-06T10:00:48Z systemd[2829]: warning: disk usage on /var/lib at 97% (threshold 85%)
+2026-09-06T10:00:49Z scheduler[3404]: started session 2 of user deploy
+2026-09-06T10:00:50Z api-server[2497]: request GET /api/v1/pods latency=213ms status=200
+2026-09-06T10:00:51Z nginx[9868]: request GET /api/v1/pods latency=371ms status=200
+2026-09-06T10:00:52Z scheduler[5383]: health check passed for backend-28 in 654ms
+2026-09-06T10:00:53Z api-server[3684]: health check passed for backend-13 in 896ms
+2026-09-06T10:00:54Z nginx[8703]: connection from 10.0.174.181:64106 accepted
+2026-09-06T10:00:55Z etcd[7807]: leader election: renewing lease for node-25
+2026-09-06T10:00:56Z kube-proxy[765]: request GET /api/v1/pods latency=41ms status=200
+2026-09-06T10:00:57Z systemd[2538]: reconciling deployment default/web-22: 3 replicas ready
+2026-09-06T10:00:58Z api-server[1585]: health check passed for backend-33 in 543ms
+2026-09-06T10:00:59Z api-server[9907]: ERROR failed to pull image registry.local/app:14: manifest unknown
+2026-09-06T10:01:00Z kube-proxy[435]: started session 39 of user deploy
+2026-09-06T10:01:01Z nginx[8185]: connection from 10.0.93.78:34241 accepted
+2026-09-06T10:01:02Z kube-proxy[2186]: reconciling deployment default/web-25: 3 replicas ready
+2026-09-06T10:01:03Z scheduler[6946]: warning: disk usage on /var/lib at 62% (threshold 85%)
+2026-09-06T10:01:04Z systemd[5879]: leader election: renewing lease for node-6
+2026-09-06T10:01:05Z nginx[7815]: started session 30 of user deploy
+2026-09-06T10:01:06Z nginx[9097]: leader election: renewing lease for node-9
+2026-09-06T10:01:07Z nginx[7754]: TLS handshake error from 10.0.99.99:52366: EOF
+2026-09-06T10:01:08Z systemd[2182]: TLS handshake error from 10.0.63.249:45754: EOF
+2026-09-06T10:01:09Z systemd[3198]: started session 8 of user deploy
+2026-09-06T10:01:10Z etcd[1334]: connection from 10.0.200.114:25375 accepted
+2026-09-06T10:01:11Z api-server[3638]: connection from 10.0.20.125:17760 accepted
+2026-09-06T10:01:12Z scheduler[8408]: warning: disk usage on /var/lib at 93% (threshold 85%)
+2026-09-06T10:01:13Z nginx[6909]: reconciling deployment default/web-28: 3 replicas ready
+2026-09-06T10:01:14Z scheduler[6932]: request GET /api/v1/pods latency=160ms status=200
+2026-09-06T10:01:15Z etcd[1252]: connection from 10.0.254.236:57650 accepted
+2026-09-06T10:01:16Z nginx[3876]: request GET /api/v1/pods latency=354ms status=200
+2026-09-06T10:01:17Z kube-proxy[2118]: TLS handshake error from 10.0.36.153:59576: EOF
+2026-09-06T10:01:18Z systemd[2424]: connection from 10.0.150.95:46208 accepted
+2026-09-06T10:01:19Z nginx[3509]: leader election: renewing lease for node-17
+2026-09-06T10:01:20Z sshd[5457]: TLS handshake error from 10.0.171.122:63998: EOF
+2026-09-06T10:01:21Z scheduler[2507]: leader election: renewing lease for node-20
+2026-09-06T10:01:22Z etcd[6202]: leader election: renewing lease for node-16
+2026-09-06T10:01:23Z nginx[1299]: started session 2 of user deploy
+2026-09-06T10:01:24Z scheduler[4982]: leader election: renewing lease for node-10
+2026-09-06T10:01:25Z nginx[6267]: TLS handshake error from 10.0.43.64:30175: EOF
+2026-09-06T10:01:26Z kube-proxy[6188]: started session 21 of user deploy
+2026-09-06T10:01:27Z nginx[9245]: reconciling deployment default/web-7: 3 replicas ready
+2026-09-06T10:01:28Z kube-proxy[4162]: leader election: renewing lease for node-27
+2026-09-06T10:01:29Z sshd[1517]: health check passed for backend-23 in 146ms
+2026-09-06T10:01:30Z scheduler[227]: health check passed for backend-29 in 851ms
+2026-09-06T10:01:31Z api-server[2659]: warning: disk usage on /var/lib at 94% (threshold 85%)
+2026-09-06T10:01:32Z systemd[6740]: started session 15 of user deploy
+2026-09-06T10:01:33Z etcd[6627]: reconciling deployment default/web-3: 3 replicas ready
+2026-09-06T10:01:34Z etcd[3311]: ERROR failed to pull image registry.local/app:17: manifest unknown
+2026-09-06T10:01:35Z etcd[2036]: request GET /api/v1/pods latency=269ms status=200
+2026-09-06T10:01:36Z scheduler[4846]: ERROR failed to pull image registry.local/app:11: manifest unknown
+2026-09-06T10:01:37Z nginx[6830]: reconciling deployment default/web-14: 3 replicas ready
+2026-09-06T10:01:38Z scheduler[6191]: ERROR failed to pull image registry.local/app:18: manifest unknown
+2026-09-06T10:01:39Z api-server[7766]: leader election: renewing lease for node-25
+2026-09-06T10:01:40Z scheduler[8109]: leader election: renewing lease for node-27
+2026-09-06T10:01:41Z kube-proxy[8218]: ERROR failed to pull image registry.local/app:29: manifest unknown
+2026-09-06T10:01:42Z systemd[8731]: connection from 10.0.110.7:24315 accepted
+2026-09-06T10:01:43Z etcd[774]: request GET /api/v1/pods latency=760ms status=200
+2026-09-06T10:01:44Z kube-proxy[9485]: request GET /api/v1/pods latency=656ms status=200
+2026-09-06T10:01:45Z kube-proxy[5518]: reconciling deployment default/web-22: 3 replicas ready
+2026-09-06T10:01:46Z etcd[2217]: started session 10 of user deploy
+2026-09-06T10:01:47Z systemd[8160]: warning: disk usage on /var/lib at 87% (threshold 85%)
+2026-09-06T10:01:48Z sshd[915]: started session 14 of user deploy
+2026-09-06T10:01:49Z nginx[2940]: started session 12 of user deploy
+2026-09-06T10:01:50Z systemd[5884]: warning: disk usage on /var/lib at 78% (threshold 85%)
+2026-09-06T10:01:51Z sshd[7155]: started session 34 of user deploy
+2026-09-06T10:01:52Z etcd[791]: health check passed for backend-14 in 488ms
+2026-09-06T10:01:53Z kube-proxy[1143]: connection from 10.0.26.42:23948 accepted
+2026-09-06T10:01:54Z scheduler[3259]: started session 36 of user deploy
+2026-09-06T10:01:55Z api-server[7566]: TLS handshake error from 10.0.52.156:58881: EOF
+2026-09-06T10:01:56Z nginx[3533]: TLS handshake error from 10.0.130.8:35233: EOF
+2026-09-06T10:01:57Z etcd[8568]: ERROR failed to pull image registry.local/app:17: manifest unknown
+2026-09-06T10:01:58Z etcd[9143]: started session 16 of user deploy
+2026-09-06T10:01:59Z systemd[6852]: request GET /api/v1/pods latency=742ms status=200
+2026-09-06T10:02:00Z nginx[2619]: health check passed for backend-6 in 88ms
+2026-09-06T10:02:01Z systemd[6563]: started session 28 of user deploy
+2026-09-06T10:02:02Z etcd[5336]: connection from 10.0.92.64:33137 accepted
+2026-09-06T10:02:03Z systemd[3396]: started session 40 of user deploy
+2026-09-06T10:02:04Z etcd[3897]: reconciling deployment default/web-35: 3 replicas ready
+2026-09-06T10:02:05Z sshd[6893]: connection from 10.0.60.158:52371 accepted
+2026-09-06T10:02:06Z api-server[7116]: warning: disk usage on /var/lib at 94% (threshold 85%)
+2026-09-06T10:02:07Z etcd[3861]: connection from 10.0.62.99:43307 accepted
+2026-09-06T10:02:08Z api-server[5138]: ERROR failed to pull image registry.local/app:16: manifest unknown
+2026-09-06T10:02:09Z kube-proxy[2349]: TLS handshake error from 10.0.119.96:42214: EOF
+2026-09-06T10:02:10Z scheduler[2643]: connection from 10.0.167.94:39390 accepted
+2026-09-06T10:02:11Z systemd[3597]: leader election: renewing lease for node-32
+2026-09-06T10:02:12Z api-server[9783]: warning: disk usage on /var/lib at 82% (threshold 85%)
+2026-09-06T10:02:13Z api-server[9866]: leader election: renewing lease for node-40
+2026-09-06T10:02:14Z sshd[2771]: TLS handshake error from 10.0.250.117:21254: EOF
+2026-09-06T10:02:15Z kube-proxy[6683]: health check passed for backend-6 in 722ms
+2026-09-06T10:02:16Z nginx[5263]: warning: disk usage on /var/lib at 73% (threshold 85%)
+2026-09-06T10:02:17Z etcd[2759]: warning: disk usage on /var/lib at 76% (threshold 85%)
+2026-09-06T10:02:18Z etcd[460]: reconciling deployment default/web-4: 3 replicas ready
+2026-09-06T10:02:19Z sshd[5452]: health check passed for backend-1 in 47ms
+2026-09-06T10:02:20Z kube-proxy[7455]: request GET /api/v1/pods latency=680ms status=200
+2026-09-06T10:02:21Z scheduler[257]: started session 22 of user deploy
+2026-09-06T10:02:22Z api-server[2108]: started session 30 of user deploy
+2026-09-06T10:02:23Z systemd[8520]: started session 9 of user deploy
+2026-09-06T10:02:24Z nginx[2866]: leader election: renewing lease for node-12
+2026-09-06T10:02:25Z api-server[7595]: ERROR failed to pull image registry.local/app:39: manifest unknown
+2026-09-06T10:02:26Z sshd[695]: leader election: renewing lease for node-25
+2026-09-06T10:02:27Z kube-proxy[8413]: health check passed for backend-10 in 688ms
+2026-09-06T10:02:28Z systemd[8166]: TLS handshake error from 10.0.83.189:50371: EOF
+2026-09-06T10:02:29Z nginx[8812]: started session 36 of user deploy
+2026-09-06T10:02:30Z sshd[2066]: ERROR failed to pull image registry.local/app:30: manifest unknown
+2026-09-06T10:02:31Z etcd[9635]: started session 18 of user deploy
+2026-09-06T10:02:32Z systemd[4206]: reconciling deployment default/web-22: 3 replicas ready
+2026-09-06T10:02:33Z sshd[8829]: warning: disk usage on /var/lib at 97% (threshold 85%)
+2026-09-06T10:02:34Z api-server[939]: TLS handshake error from 10.0.83.235:57912: EOF
+2026-09-06T10:02:35Z scheduler[6713]: leader election: renewing lease for node-19
+2026-09-06T10:02:36Z scheduler[2161]: started session 37 of user deploy
+2026-09-06T10:02:37Z kube-proxy[1250]: TLS handshake error from 10.0.4.243:48316: EOF
+2026-09-06T10:02:38Z kube-proxy[1136]: ERROR failed to pull image registry.local/app:12: manifest unknown
+2026-09-06T10:02:39Z scheduler[7221]: leader election: renewing lease for node-35
+2026-09-06T10:02:40Z api-server[8738]: reconciling deployment default/web-18: 3 replicas ready
+2026-09-06T10:02:41Z systemd[197]: ERROR failed to pull image registry.local/app:28: manifest unknown
+2026-09-06T10:02:42Z etcd[7704]: ERROR failed to pull image registry.local/app:37: manifest unknown
+2026-09-06T10:02:43Z etcd[8768]: connection from 10.0.210.163:41271 accepted
+2026-09-06T10:02:44Z sshd[4182]: leader election: renewing lease for node-32
+2026-09-06T10:02:45Z api-server[7442]: warning: disk usage on /var/lib at 64% (threshold 85%)
+2026-09-06T10:02:46Z kube-proxy[7317]: warning: disk usage on /var/lib at 72% (threshold 85%)
+2026-09-06T10:02:47Z systemd[5935]: request GET /api/v1/pods latency=279ms status=200
+2026-09-06T10:02:48Z kube-proxy[6619]: TLS handshake error from 10.0.46.79:2998: EOF
+2026-09-06T10:02:49Z api-server[7723]: started session 25 of user deploy
+2026-09-06T10:02:50Z scheduler[7861]: TLS handshake error from 10.0.64.145:47586: EOF
+2026-09-06T10:02:51Z nginx[1236]: ERROR failed to pull image registry.local/app:23: manifest unknown
+2026-09-06T10:02:52Z systemd[515]: warning: disk usage on /var/lib at 80% (threshold 85%)
+2026-09-06T10:02:53Z sshd[2428]: TLS handshake error from 10.0.201.232:9233: EOF
+2026-09-06T10:02:54Z kube-proxy[2294]: leader election: renewing lease for node-4
+2026-09-06T10:02:55Z sshd[6444]: health check passed for backend-3 in 533ms
+2026-09-06T10:02:56Z api-server[2957]: leader election: renewing lease for node-6
+2026-09-06T10:02:57Z api-server[7578]: reconciling deployment default/web-17: 3 replicas ready
+2026-09-06T10:02:58Z sshd[8492]: leader election: renewing lease for node-38
+2026-09-06T10:02:59Z api-server[4011]: connection from 10.0.161.210:63069 accepted
+2026-09-06T10:03:00Z systemd[9208]: health check passed for backend-9 in 671ms
+2026-09-06T10:03:01Z nginx[7107]: connection from 10.0.42.211:34950 accepted
+2026-09-06T10:03:02Z systemd[2047]: TLS handshake error from 10.0.231.86:55648: EOF
+2026-09-06T10:03:03Z etcd[3267]: leader election: renewing lease for node-9
+2026-09-06T10:03:04Z nginx[9937]: connection from 10.0.211.166:5089 accepted
+2026-09-06T10:03:05Z scheduler[5915]: leader election: renewing lease for node-27
+2026-09-06T10:03:06Z kube-proxy[602]: reconciling deployment default/web-30: 3 replicas ready
+2026-09-06T10:03:07Z nginx[2121]: health check passed for backend-5 in 397ms
+2026-09-06T10:03:08Z etcd[7578]: connection from 10.0.179.6:12629 accepted
+2026-09-06T10:03:09Z systemd[6685]: ERROR failed to pull image registry.local/app:4: manifest unknown
+2026-09-06T10:03:10Z etcd[1713]: reconciling deployment default/web-6: 3 replicas ready
+2026-09-06T10:03:11Z nginx[6271]: health check passed for backend-19 in 529ms
+2026-09-06T10:03:12Z kube-proxy[2704]: TLS handshake error from 10.0.80.242:36956: EOF
+2026-09-06T10:03:13Z kube-proxy[4036]: warning: disk usage on /var/lib at 62% (threshold 85%)
+2026-09-06T10:03:14Z kube-proxy[6993]: reconciling deployment default/web-23: 3 replicas ready
+2026-09-06T10:03:15Z systemd[320]: health check passed for backend-25 in 142ms
+2026-09-06T10:03:16Z nginx[512]: leader election: renewing lease for node-12
+2026-09-06T10:03:17Z api-server[2519]: TLS handshake error from 10.0.1.10:4117: EOF
+2026-09-06T10:03:18Z sshd[5554]: leader election: renewing lease for node-28
+2026-09-06T10:03:19Z nginx[2226]: warning: disk usage on /var/lib at 85% (threshold 85%)
+2026-09-06T10:03:20Z scheduler[6354]: started session 28 of user deploy
+2026-09-06T10:03:21Z nginx[4234]: warning: disk usage on /var/lib at 97% (threshold 85%)
+2026-09-06T10:03:22Z kube-proxy[4626]: reconciling deployment default/web-40: 3 replicas ready
+2026-09-06T10:03:23Z systemd[898]: connection from 10.0.164.223:53326 accepted
+2026-09-06T10:03:24Z nginx[7647]: leader election: renewing lease for node-26
+2026-09-06T10:03:25Z api-server[4748]: health check passed for backend-27 in 486ms
+2026-09-06T10:03:26Z systemd[7844]: ERROR failed to pull image registry.local/app:10: manifest unknown
+2026-09-06T10:03:27Z etcd[4950]: ERROR failed to pull image registry.local/app:12: manifest unknown
+2026-09-06T10:03:28Z etcd[6246]: started session 3 of user deploy
+2026-09-06T10:03:29Z kube-proxy[611]: warning: disk usage on /var/lib at 82% (threshold 85%)
+2026-09-06T10:03:30Z api-server[9175]: started session 5 of user deploy
+2026-09-06T10:03:31Z api-server[2320]: leader election: renewing lease for node-15
+2026-09-06T10:03:32Z sshd[2041]: health check passed for backend-19 in 639ms
+2026-09-06T10:03:33Z api-server[2468]: started session 33 of user deploy
+2026-09-06T10:03:34Z scheduler[8481]: started session 23 of user deploy
+2026-09-06T10:03:35Z nginx[9659]: reconciling deployment default/web-10: 3 replicas ready
+2026-09-06T10:03:36Z sshd[9981]: ERROR failed to pull image registry.local/app:14: manifest unknown
+2026-09-06T10:03:37Z scheduler[1498]: ERROR failed to pull image registry.local/app:40: manifest unknown
+2026-09-06T10:03:38Z nginx[7515]: connection from 10.0.5.30:59509 accepted
+2026-09-06T10:03:39Z api-server[9137]: TLS handshake error from 10.0.129.171:32909: EOF
+2026-09-06T10:03:40Z scheduler[3509]: request GET /api/v1/pods latency=659ms status=200
+2026-09-06T10:03:41Z kube-proxy[7324]: health check passed for backend-9 in 602ms
+2026-09-06T10:03:42Z etcd[3919]: connection from 10.0.192.238:53606 accepted
+2026-09-06T10:03:43Z systemd[8414]: ERROR failed to pull image registry.local/app:7: manifest unknown
+2026-09-06T10:03:44Z etcd[2713]: health check passed for backend-15 in 186ms
+2026-09-06T10:03:45Z api-server[6817]: reconciling deployment default/web-31: 3 replicas ready
+2026-09-06T10:03:46Z kube-proxy[5989]: ERROR failed to pull image registry.local/app:8: manifest unknown
+2026-09-06T10:03:47Z api-server[3352]: request GET /api/v1/pods latency=59ms status=200
+2026-09-06T10:03:48Z sshd[1853]: connection from 10.0.16.221:27523 accepted
+2026-09-06T10:03:49Z kube-proxy[3813]: health check passed for backend-7 in 352ms
+2026-09-06T10:03:50Z api-server[5684]: health check passed for backend-32 in 10ms
+2026-09-06T10:03:51Z scheduler[2483]: request GET /api/v1/pods latency=433ms status=200
+2026-09-06T10:03:52Z etcd[6397]: warning: disk usage on /var/lib at 82% (threshold 85%)
+2026-09-06T10:03:53Z sshd[6226]: leader election: renewing lease for node-31
+2026-09-06T10:03:54Z scheduler[4873]: TLS handshake error from 10.0.221.72:24565: EOF
+2026-09-06T10:03:55Z scheduler[3846]: request GET /api/v1/pods latency=250ms status=200
+2026-09-06T10:03:56Z api-server[3715]: request GET /api/v1/pods latency=476ms status=200
+2026-09-06T10:03:57Z nginx[7829]: started session 34 of user deploy
+2026-09-06T10:03:58Z api-server[762]: TLS handshake error from 10.0.201.229:63269: EOF
+2026-09-06T10:03:59Z nginx[3062]: started session 21 of user deploy
+2026-09-06T10:04:00Z api-server[173]: TLS handshake error from 10.0.14.60:63472: EOF
+2026-09-06T10:04:01Z sshd[7736]: leader election: renewing lease for node-13
+2026-09-06T10:04:02Z api-server[3002]: warning: disk usage on /var/lib at 64% (threshold 85%)
+2026-09-06T10:04:03Z scheduler[3542]: warning: disk usage on /var/lib at 60% (threshold 85%)
+2026-09-06T10:04:04Z etcd[6120]: started session 2 of user deploy
+2026-09-06T10:04:05Z etcd[1791]: TLS handshake error from 10.0.232.165:9830: EOF
+2026-09-06T10:04:06Z scheduler[3492]: request GET /api/v1/pods latency=146ms status=200
+2026-09-06T10:04:07Z nginx[7876]: TLS handshake error from 10.0.103.108:34317: EOF
+2026-09-06T10:04:08Z kube-proxy[6919]: request GET /api/v1/pods latency=466ms status=200
+2026-09-06T10:04:09Z scheduler[4170]: reconciling deployment default/web-22: 3 replicas ready
+2026-09-06T10:04:10Z sshd[198]: TLS handshake error from 10.0.246.199:62305: EOF
+2026-09-06T10:04:11Z scheduler[4049]: ERROR failed to pull image registry.local/app:29: manifest unknown
+2026-09-06T10:04:12Z etcd[8065]: reconciling deployment default/web-29: 3 replicas ready
+2026-09-06T10:04:13Z kube-proxy[5716]: leader election: renewing lease for node-8
+2026-09-06T10:04:14Z scheduler[3174]: connection from 10.0.171.223:41773 accepted
+2026-09-06T10:04:15Z systemd[8634]: started session 4 of user deploy
+2026-09-06T10:04:16Z scheduler[2592]: warning: disk usage on /var/lib at 97% (threshold 85%)
+2026-09-06T10:04:17Z api-server[5304]: health check passed for backend-16 in 34ms
+2026-09-06T10:04:18Z scheduler[3769]: ERROR failed to pull image registry.local/app:9: manifest unknown
+2026-09-06T10:04:19Z scheduler[3248]: request GET /api/v1/pods latency=650ms status=200
+2026-09-06T10:04:20Z scheduler[5302]: leader election: renewing lease for node-29
+2026-09-06T10:04:21Z scheduler[7700]: health check passed for backend-8 in 773ms
+2026-09-06T10:04:22Z scheduler[3496]: ERROR failed to pull image registry.local/app:3: manifest unknown
+2026-09-06T10:04:23Z kube-proxy[167]: request GET /api/v1/pods latency=895ms status=200
+2026-09-06T10:04:24Z nginx[8173]: leader election: renewing lease for node-35
+2026-09-06T10:04:25Z nginx[480]: connection from 10.0.104.108:41460 accepted
+2026-09-06T10:04:26Z scheduler[4333]: warning: disk usage on /var/lib at 69% (threshold 85%)
+2026-09-06T10:04:27Z scheduler[8403]: request GET /api/v1/pods latency=859ms status=200
+2026-09-06T10:04:28Z kube-proxy[5269]: TLS handshake error from 10.0.116.211:39705: EOF
+2026-09-06T10:04:29Z scheduler[497]: health check passed for backend-28 in 491ms
+2026-09-06T10:04:30Z nginx[7141]: request GET /api/v1/pods latency=137ms status=200
+2026-09-06T10:04:31Z etcd[4878]: warning: disk usage on /var/lib at 67% (threshold 85%)
+2026-09-06T10:04:32Z etcd[8544]: TLS handshake error from 10.0.97.191:55058: EOF
+2026-09-06T10:04:33Z etcd[2355]: ERROR failed to pull image registry.local/app:2: manifest unknown
+2026-09-06T10:04:34Z api-server[1807]: TLS handshake error from 10.0.50.158:37805: EOF
+2026-09-06T10:04:35Z api-server[3760]: ERROR failed to pull image registry.local/app:32: manifest unknown
+2026-09-06T10:04:36Z sshd[3870]: TLS handshake error from 10.0.49.143:55834: EOF
+2026-09-06T10:04:37Z kube-proxy[4510]: started session 29 of user deploy
+2026-09-06T10:04:38Z etcd[9293]: TLS handshake error from 10.0.102.56:31546: EOF
+2026-09-06T10:04:39Z nginx[1485]: connection from 10.0.42.170:54719 accepted
+2026-09-06T10:04:40Z api-server[9187]: connection from 10.0.149.206:8538 accepted
+2026-09-06T10:04:41Z nginx[1416]: TLS handshake error from 10.0.229.23:28196: EOF
+2026-09-06T10:04:42Z nginx[475]: health check passed for backend-28 in 247ms
+2026-09-06T10:04:43Z api-server[4809]: connection from 10.0.137.20:58097 accepted
+2026-09-06T10:04:44Z etcd[9883]: connection from 10.0.127.218:59240 accepted
+2026-09-06T10:04:45Z etcd[8829]: connection from 10.0.198.108:19431 accepted
+2026-09-06T10:04:46Z api-server[940]: health check passed for backend-24 in 434ms
+2026-09-06T10:04:47Z nginx[3092]: warning: disk usage on /var/lib at 79% (threshold 85%)
+2026-09-06T10:04:48Z scheduler[2140]: leader election: renewing lease for node-24
+2026-09-06T10:04:49Z scheduler[1056]: ERROR failed to pull image registry.local/app:26: manifest unknown
+2026-09-06T10:04:50Z systemd[2480]: leader election: renewing lease for node-15
+2026-09-06T10:04:51Z sshd[2669]: leader election: renewing lease for node-15
+2026-09-06T10:04:52Z api-server[5005]: warning: disk usage on /var/lib at 75% (threshold 85%)
+2026-09-06T10:04:53Z scheduler[2849]: connection from 10.0.235.203:60322 accepted
+2026-09-06T10:04:54Z nginx[2177]: started session 34 of user deploy
+2026-09-06T10:04:55Z sshd[6585]: request GET /api/v1/pods latency=84ms status=200
+2026-09-06T10:04:56Z sshd[1355]: health check passed for backend-26 in 354ms
+2026-09-06T10:04:57Z api-server[1198]: leader election: renewing lease for node-3
+2026-09-06T10:04:58Z sshd[8450]: health check passed for backend-9 in 797ms
+2026-09-06T10:04:59Z systemd[4971]: reconciling deployment default/web-23: 3 replicas ready
+2026-09-06T10:05:00Z scheduler[5660]: ERROR failed to pull image registry.local/app:13: manifest unknown
+2026-09-06T10:05:01Z etcd[9981]: health check passed for backend-19 in 487ms
+2026-09-06T10:05:02Z sshd[9352]: started session 33 of user deploy
+2026-09-06T10:05:03Z api-server[2398]: warning: disk usage on /var/lib at 70% (threshold 85%)
+2026-09-06T10:05:04Z scheduler[8729]: ERROR failed to pull image registry.local/app:28: manifest unknown
+2026-09-06T10:05:05Z kube-proxy[9884]: connection from 10.0.99.248:17866 accepted
+2026-09-06T10:05:06Z api-server[2944]: request GET /api/v1/pods latency=2ms status=200
+2026-09-06T10:05:07Z api-server[2843]: TLS handshake error from 10.0.137.3:45228: EOF
+2026-09-06T10:05:08Z nginx[9636]: reconciling deployment default/web-24: 3 replicas ready
+2026-09-06T10:05:09Z api-server[8811]: started session 12 of user deploy
+2026-09-06T10:05:10Z etcd[3122]: reconciling deployment default/web-25: 3 replicas ready
+2026-09-06T10:05:11Z scheduler[9714]: leader election: renewing lease for node-38
+2026-09-06T10:05:12Z api-server[1496]: warning: disk usage on /var/lib at 68% (threshold 85%)
+2026-09-06T10:05:13Z sshd[1107]: started session 40 of user deploy
+2026-09-06T10:05:14Z scheduler[5516]: TLS handshake error from 10.0.70.81:65183: EOF
+2026-09-06T10:05:15Z api-server[4342]: reconciling deployment default/web-11: 3 replicas ready
+2026-09-06T10:05:16Z scheduler[2170]: ERROR failed to pull image registry.local/app:11: manifest unknown
+2026-09-06T10:05:17Z sshd[1738]: request GET /api/v1/pods latency=765ms status=200
+2026-09-06T10:05:18Z systemd[8882]: started session 23 of user deploy
+2026-09-06T10:05:19Z scheduler[6408]: request GET /api/v1/pods latency=16ms status=200
+2026-09-06T10:05:20Z sshd[6523]: health check passed for backend-9 in 840ms
+2026-09-06T10:05:21Z systemd[6643]: warning: disk usage on /var/lib at 98% (threshold 85%)
+2026-09-06T10:05:22Z sshd[7402]: leader election: renewing lease for node-35
+2026-09-06T10:05:23Z kube-proxy[1562]: ERROR failed to pull image registry.local/app:14: manifest unknown
+2026-09-06T10:05:24Z systemd[944]: health check passed for backend-26 in 217ms
+2026-09-06T10:05:25Z systemd[2407]: ERROR failed to pull image registry.local/app:19: manifest unknown
+2026-09-06T10:05:26Z systemd[2481]: ERROR failed to pull image registry.local/app:1: manifest unknown
+2026-09-06T10:05:27Z etcd[8049]: TLS handshake error from 10.0.32.23:25470: EOF
+2026-09-06T10:05:28Z api-server[7964]: health check passed for backend-25 in 450ms
+2026-09-06T10:05:29Z systemd[8479]: ERROR failed to pull image registry.local/app:10: manifest unknown
+2026-09-06T10:05:30Z scheduler[9360]: TLS handshake error from 10.0.75.226:5642: EOF
+2026-09-06T10:05:31Z sshd[7914]: request GET /api/v1/pods latency=579ms status=200
+2026-09-06T10:05:32Z etcd[3905]: started session 30 of user deploy
+2026-09-06T10:05:33Z systemd[8493]: ERROR failed to pull image registry.local/app:24: manifest unknown
+2026-09-06T10:05:34Z scheduler[4095]: connection from 10.0.127.148:6066 accepted
+2026-09-06T10:05:35Z etcd[751]: ERROR failed to pull image registry.local/app:3: manifest unknown
+2026-09-06T10:05:36Z nginx[3969]: TLS handshake error from 10.0.92.88:18670: EOF
+2026-09-06T10:05:37Z systemd[7968]: health check passed for backend-11 in 868ms
+2026-09-06T10:05:38Z scheduler[3590]: ERROR failed to pull image registry.local/app:19: manifest unknown
+2026-09-06T10:05:39Z scheduler[5265]: connection from 10.0.232.160:40331 accepted
+2026-09-06T10:05:40Z scheduler[6513]: TLS handshake error from 10.0.220.146:51450: EOF
+2026-09-06T10:05:41Z kube-proxy[8889]: warning: disk usage on /var/lib at 76% (threshold 85%)
+2026-09-06T10:05:42Z etcd[4090]: TLS handshake error from 10.0.233.61:40301: EOF
+2026-09-06T10:05:43Z scheduler[7961]: leader election: renewing lease for node-39
+2026-09-06T10:05:44Z api-server[8238]: warning: disk usage on /var/lib at 65% (threshold 85%)
+2026-09-06T10:05:45Z systemd[6763]: warning: disk usage on /var/lib at 82% (threshold 85%)
+2026-09-06T10:05:46Z systemd[9229]: TLS handshake error from 10.0.10.12:13612: EOF
+2026-09-06T10:05:47Z systemd[5247]: health check passed for backend-32 in 295ms
+2026-09-06T10:05:48Z kube-proxy[4460]: started session 4 of user deploy
+2026-09-06T10:05:49Z kube-proxy[1569]: ERROR failed to pull image registry.local/app:31: manifest unknown
+2026-09-06T10:05:50Z etcd[9875]: request GET /api/v1/pods latency=876ms status=200
+2026-09-06T10:05:51Z nginx[9735]: request GET /api/v1/pods latency=808ms status=200
+2026-09-06T10:05:52Z systemd[3341]: started session 40 of user deploy
+2026-09-06T10:05:53Z kube-proxy[2231]: reconciling deployment default/web-38: 3 replicas ready
+2026-09-06T10:05:54Z etcd[3449]: warning: disk usage on /var/lib at 99% (threshold 85%)
+2026-09-06T10:05:55Z kube-proxy[9746]: request GET /api/v1/pods latency=680ms status=200
+2026-09-06T10:05:56Z nginx[4675]: connection from 10.0.179.138:44178 accepted
+2026-09-06T10:05:57Z sshd[155]: warning: disk usage on /var/lib at 96% (threshold 85%)
+2026-09-06T10:05:58Z etcd[3704]: started session 3 of user deploy
+2026-09-06T10:05:59Z sshd[3192]: leader election: renewing lease for node-15
+2026-09-06T10:06:00Z etcd[3669]: request GET /api/v1/pods latency=362ms status=200
+2026-09-06T10:06:01Z sshd[1659]: reconciling deployment default/web-8: 3 replicas ready
+2026-09-06T10:06:02Z etcd[8884]: ERROR failed to pull image registry.local/app:10: manifest unknown
+2026-09-06T10:06:03Z scheduler[8486]: warning: disk usage on /var/lib at 80% (threshold 85%)
+2026-09-06T10:06:04Z kube-proxy[8965]: connection from 10.0.176.214:57554 accepted
+2026-09-06T10:06:05Z scheduler[3542]: leader election: renewing lease for node-34
+2026-09-06T10:06:06Z nginx[8402]: health check passed for backend-35 in 100ms
+2026-09-06T10:06:07Z api-server[6292]: health check passed for backend-16 in 239ms
+2026-09-06T10:06:08Z kube-proxy[3679]: started session 14 of user deploy
+2026-09-06T10:06:09Z kube-proxy[9992]: health check passed for backend-7 in 880ms
+2026-09-06T10:06:10Z sshd[9977]: warning: disk usage on /var/lib at 90% (threshold 85%)
+2026-09-06T10:06:11Z kube-proxy[7317]: connection from 10.0.179.89:65267 accepted
+2026-09-06T10:06:12Z scheduler[1597]: warning: disk usage on /var/lib at 89% (threshold 85%)
+2026-09-06T10:06:13Z api-server[2139]: reconciling deployment default/web-20: 3 replicas ready
+2026-09-06T10:06:14Z systemd[2329]: health check passed for backend-6 in 670ms
+2026-09-06T10:06:15Z api-server[6164]: started session 19 of user deploy
+2026-09-06T10:06:16Z systemd[3239]: leader election: renewing lease for node-5
+2026-09-06T10:06:17Z nginx[2438]: warning: disk usage on /var/lib at 85% (threshold 85%)
+2026-09-06T10:06:18Z kube-proxy[9969]: health check passed for backend-10 in 678ms
+2026-09-06T10:06:19Z etcd[3566]: health check passed for backend-37 in 153ms
+2026-09-06T10:06:20Z kube-proxy[727]: request GET /api/v1/pods latency=870ms status=200
+2026-09-06T10:06:21Z nginx[8198]: reconciling deployment default/web-24: 3 replicas ready
+2026-09-06T10:06:22Z scheduler[4360]: warning: disk usage on /var/lib at 65% (threshold 85%)
+2026-09-06T10:06:23Z sshd[8583]: reconciling deployment default/web-8: 3 replicas ready
+2026-09-06T10:06:24Z kube-proxy[2451]: leader election: renewing lease for node-16
+2026-09-06T10:06:25Z kube-proxy[1212]: leader election: renewing lease for node-38
+2026-09-06T10:06:26Z systemd[4326]: request GET /api/v1/pods latency=638ms status=200
+2026-09-06T10:06:27Z etcd[5553]: started session 29 of user deploy
+2026-09-06T10:06:28Z kube-proxy[1560]: reconciling deployment default/web-19: 3 replicas ready
+2026-09-06T10:06:29Z systemd[275]: leader election: renewing lease for node-29
+2026-09-06T10:06:30Z sshd[9430]: reconciling deployment default/web-9: 3 replicas ready
+2026-09-06T10:06:31Z sshd[4518]: ERROR failed to pull image registry.local/app:7: manifest unknown
+2026-09-06T10:06:32Z kube-proxy[7471]: warning: disk usage on /var/lib at 83% (threshold 85%)
+2026-09-06T10:06:33Z api-server[7044]: connection from 10.0.197.248:43184 accepted
+2026-09-06T10:06:34Z systemd[6406]: health check passed for backend-18 in 8ms
+2026-09-06T10:06:35Z scheduler[2274]: reconciling deployment default/web-17: 3 replicas ready
+2026-09-06T10:06:36Z etcd[4387]: health check passed for backend-1 in 177ms
+2026-09-06T10:06:37Z etcd[6822]: request GET /api/v1/pods latency=331ms status=200
+2026-09-06T10:06:38Z kube-proxy[5900]: leader election: renewing lease for node-31
+2026-09-06T10:06:39Z api-server[7519]: started session 7 of user deploy
+2026-09-06T10:06:40Z sshd[7964]: leader election: renewing lease for node-34
+2026-09-06T10:06:41Z sshd[4955]: warning: disk usage on /var/lib at 63% (threshold 85%)
+2026-09-06T10:06:42Z nginx[2466]: leader election: renewing lease for node-36
+2026-09-06T10:06:43Z kube-proxy[6235]: connection from 10.0.47.87:50378 accepted
+2026-09-06T10:06:44Z nginx[177]: health check passed for backend-26 in 461ms
+2026-09-06T10:06:45Z api-server[5035]: request GET /api/v1/pods latency=320ms status=200
+2026-09-06T10:06:46Z systemd[1922]: request GET /api/v1/pods latency=296ms status=200
+2026-09-06T10:06:47Z scheduler[9454]: leader election: renewing lease for node-17
+2026-09-06T10:06:48Z nginx[6349]: connection from 10.0.193.5:63989 accepted
+2026-09-06T10:06:49Z api-server[9270]: warning: disk usage on /var/lib at 98% (threshold 85%)
+2026-09-06T10:06:50Z scheduler[9970]: TLS handshake error from 10.0.95.109:42953: EOF
+2026-09-06T10:06:51Z sshd[4249]: warning: disk usage on /var/lib at 89% (threshold 85%)
+2026-09-06T10:06:52Z etcd[480]: TLS handshake error from 10.0.139.199:11759: EOF
+2026-09-06T10:06:53Z nginx[1769]: TLS handshake error from 10.0.242.160:52691: EOF
+2026-09-06T10:06:54Z api-server[2277]: health check passed for backend-39 in 399ms
+2026-09-06T10:06:55Z nginx[3334]: connection from 10.0.251.106:59486 accepted
+2026-09-06T10:06:56Z sshd[9175]: warning: disk usage on /var/lib at 93% (threshold 85%)
+2026-09-06T10:06:57Z scheduler[5715]: started session 2 of user deploy
+2026-09-06T10:06:58Z sshd[8518]: connection from 10.0.101.158:20367 accepted
+2026-09-06T10:06:59Z sshd[6858]: reconciling deployment default/web-23: 3 replicas ready
+2026-09-06T10:07:00Z sshd[7225]: started session 36 of user deploy
+2026-09-06T10:07:01Z sshd[9704]: reconciling deployment default/web-28: 3 replicas ready
+2026-09-06T10:07:02Z sshd[2884]: reconciling deployment default/web-27: 3 replicas ready
+2026-09-06T10:07:03Z sshd[3815]: TLS handshake error from 10.0.19.109:29804: EOF
+2026-09-06T10:07:04Z kube-proxy[8244]: TLS handshake error from 10.0.118.97:2599: EOF
+2026-09-06T10:07:05Z sshd[3032]: request GET /api/v1/pods latency=619ms status=200
+2026-09-06T10:07:06Z scheduler[5203]: connection from 10.0.223.173:29303 accepted
+2026-09-06T10:07:07Z scheduler[4733]: ERROR failed to pull image registry.local/app:7: manifest unknown
+2026-09-06T10:07:08Z systemd[7658]: reconciling deployment default/web-18: 3 replicas ready
+2026-09-06T10:07:09Z scheduler[5168]: request GET /api/v1/pods latency=729ms status=200
+2026-09-06T10:07:10Z nginx[1598]: ERROR failed to pull image registry.local/app:28: manifest unknown
+2026-09-06T10:07:11Z api-server[806]: TLS handshake error from 10.0.3.76:21263: EOF
+2026-09-06T10:07:12Z nginx[9286]: leader election: renewing lease for node-38
+2026-09-06T10:07:13Z kube-proxy[1740]: leader election: renewing lease for node-39
+2026-09-06T10:07:14Z sshd[2853]: health check passed for backend-29 in 485ms
+2026-09-06T10:07:15Z kube-proxy[1422]: ERROR failed to pull image registry.local/app:28: manifest unknown
+2026-09-06T10:07:16Z sshd[6295]: ERROR failed to pull image registry.local/app:16: manifest unknown
+2026-09-06T10:07:17Z etcd[4067]: TLS handshake error from 10.0.165.144:46817: EOF
+2026-09-06T10:07:18Z etcd[8380]: request GET /api/v1/pods latency=871ms status=200
+2026-09-06T10:07:19Z sshd[2342]: TLS handshake error from 10.0.10.3:1105: EOF
+2026-09-06T10:07:20Z etcd[4372]: leader election: renewing lease for node-31
+2026-09-06T10:07:21Z kube-proxy[1657]: leader election: renewing lease for node-23
+2026-09-06T10:07:22Z sshd[1996]: ERROR failed to pull image registry.local/app:21: manifest unknown
+2026-09-06T10:07:23Z systemd[6454]: warning: disk usage on /var/lib at 77% (threshold 85%)
+2026-09-06T10:07:24Z nginx[6999]: ERROR failed to pull image registry.local/app:15: manifest unknown
+2026-09-06T10:07:25Z sshd[4485]: ERROR failed to pull image registry.local/app:17: manifest unknown
+2026-09-06T10:07:26Z sshd[3036]: request GET /api/v1/pods latency=8ms status=200
+2026-09-06T10:07:27Z kube-proxy[8249]: reconciling deployment default/web-34: 3 replicas ready
+2026-09-06T10:07:28Z nginx[592]: warning: disk usage on /var/lib at 76% (threshold 85%)
+2026-09-06T10:07:29Z api-server[3342]: leader election: renewing lease for node-15
+2026-09-06T10:07:30Z api-server[5584]: connection from 10.0.97.117:58416 accepted
+2026-09-06T10:07:31Z etcd[3148]: TLS handshake error from 10.0.186.30:51577: EOF
+2026-09-06T10:07:32Z nginx[3183]: health check passed for backend-25 in 752ms
+2026-09-06T10:07:33Z scheduler[7386]: health check passed for backend-10 in 166ms
+2026-09-06T10:07:34Z etcd[3124]: warning: disk usage on /var/lib at 60% (threshold 85%)
+2026-09-06T10:07:35Z sshd[7000]: request GET /api/v1/pods latency=408ms status=200
+2026-09-06T10:07:36Z etcd[4310]: TLS handshake error from 10.0.217.126:31439: EOF
+2026-09-06T10:07:37Z sshd[8517]: reconciling deployment default/web-2: 3 replicas ready
+2026-09-06T10:07:38Z nginx[6891]: ERROR failed to pull image registry.local/app:27: manifest unknown
+2026-09-06T10:07:39Z scheduler[6490]: ERROR failed to pull image registry.local/app:2: manifest unknown
+2026-09-06T10:07:40Z sshd[7880]: ERROR failed to pull image registry.local/app:29: manifest unknown
+2026-09-06T10:07:41Z nginx[3691]: leader election: renewing lease for node-20
+2026-09-06T10:07:42Z etcd[7312]: request GET /api/v1/pods latency=465ms status=200
+2026-09-06T10:07:43Z etcd[8700]: leader election: renewing lease for node-17
+2026-09-06T10:07:44Z systemd[8867]: warning: disk usage on /var/lib at 85% (threshold 85%)
+2026-09-06T10:07:45Z nginx[5669]: request GET /api/v1/pods latency=517ms status=200
+2026-09-06T10:07:46Z api-server[928]: warning: disk usage on /var/lib at 96% (threshold 85%)
+2026-09-06T10:07:47Z etcd[5944]: leader election: renewing lease for node-17
+2026-09-06T10:07:48Z nginx[1903]: leader election: renewing lease for node-22
+2026-09-06T10:07:49Z scheduler[6728]: reconciling deployment default/web-1: 3 replicas ready
+2026-09-06T10:07:50Z sshd[8174]: warning: disk usage on /var/lib at 87% (threshold 85%)
+2026-09-06T10:07:51Z etcd[1274]: started session 28 of user deploy
+2026-09-06T10:07:52Z kube-proxy[2758]: leader election: renewing lease for node-29
+2026-09-06T10:07:53Z kube-proxy[1687]: health check passed for backend-15 in 823ms
+2026-09-06T10:07:54Z kube-proxy[4561]: ERROR failed to pull image registry.local/app:6: manifest unknown
+2026-09-06T10:07:55Z etcd[124]: TLS handshake error from 10.0.59.29:25851: EOF
+2026-09-06T10:07:56Z scheduler[4044]: warning: disk usage on /var/lib at 70% (threshold 85%)
+2026-09-06T10:07:57Z sshd[1562]: request GET /api/v1/pods latency=109ms status=200
+2026-09-06T10:07:58Z nginx[2577]: started session 10 of user deploy
+2026-09-06T10:07:59Z api-server[9612]: request GET /api/v1/pods latency=97ms status=200
+2026-09-06T10:08:00Z api-server[7515]: request GET /api/v1/pods latency=310ms status=200
+2026-09-06T10:08:01Z kube-proxy[2751]: reconciling deployment default/web-26: 3 replicas ready
+2026-09-06T10:08:02Z systemd[1587]: request GET /api/v1/pods latency=837ms status=200
+2026-09-06T10:08:03Z kube-proxy[5820]: TLS handshake error from 10.0.217.205:52713: EOF
+2026-09-06T10:08:04Z systemd[7308]: leader election: renewing lease for node-5
+2026-09-06T10:08:05Z kube-proxy[3365]: started session 8 of user deploy
+2026-09-06T10:08:06Z sshd[7983]: warning: disk usage on /var/lib at 97% (threshold 85%)
+2026-09-06T10:08:07Z kube-proxy[4549]: ERROR failed to pull image registry.local/app:40: manifest unknown
+2026-09-06T10:08:08Z scheduler[8786]: warning: disk usage on /var/lib at 63% (threshold 85%)
+2026-09-06T10:08:09Z kube-proxy[5520]: ERROR failed to pull image registry.local/app:39: manifest unknown
+2026-09-06T10:08:10Z systemd[2390]: health check passed for backend-2 in 756ms
+2026-09-06T10:08:11Z nginx[5361]: connection from 10.0.43.144:56718 accepted
+2026-09-06T10:08:12Z sshd[3005]: reconciling deployment default/web-4: 3 replicas ready
+2026-09-06T10:08:13Z scheduler[3537]: TLS handshake error from 10.0.196.253:43584: EOF
+2026-09-06T10:08:14Z scheduler[276]: started session 37 of user deploy
+2026-09-06T10:08:15Z systemd[5284]: started session 38 of user deploy
+2026-09-06T10:08:16Z scheduler[8147]: reconciling deployment default/web-22: 3 replicas ready
+2026-09-06T10:08:17Z etcd[6675]: TLS handshake error from 10.0.136.133:58046: EOF
+2026-09-06T10:08:18Z kube-proxy[7750]: TLS handshake error from 10.0.206.254:59671: EOF
+2026-09-06T10:08:19Z scheduler[3218]: reconciling deployment default/web-9: 3 replicas ready
+2026-09-06T10:08:20Z kube-proxy[9721]: leader election: renewing lease for node-33
+2026-09-06T10:08:21Z nginx[991]: leader election: renewing lease for node-28
+2026-09-06T10:08:22Z kube-proxy[2510]: ERROR failed to pull image registry.local/app:7: manifest unknown
+2026-09-06T10:08:23Z kube-proxy[5599]: warning: disk usage on /var/lib at 91% (threshold 85%)
+2026-09-06T10:08:24Z scheduler[9980]: ERROR failed to pull image registry.local/app:39: manifest unknown
+2026-09-06T10:08:25Z sshd[2234]: reconciling deployment default/web-7: 3 replicas ready
+2026-09-06T10:08:26Z scheduler[5605]: leader election: renewing lease for node-21
+2026-09-06T10:08:27Z kube-proxy[5727]: ERROR failed to pull image registry.local/app:1: manifest unknown
+2026-09-06T10:08:28Z etcd[1173]: started session 38 of user deploy
+2026-09-06T10:08:29Z etcd[2869]: health check passed for backend-4 in 393ms
+2026-09-06T10:08:30Z systemd[2414]: request GET /api/v1/pods latency=7ms status=200
+2026-09-06T10:08:31Z systemd[4552]: ERROR failed to pull image registry.local/app:5: manifest unknown
+2026-09-06T10:08:32Z systemd[1923]: health check passed for backend-2 in 880ms
+2026-09-06T10:08:33Z systemd[7385]: leader election: renewing lease for node-10
+2026-09-06T10:08:34Z systemd[3022]: connection from 10.0.166.233:11196 accepted
+2026-09-06T10:08:35Z systemd[8852]: leader election: renewing lease for node-33
+2026-09-06T10:08:36Z etcd[9780]: leader election: renewing lease for node-9
+2026-09-06T10:08:37Z sshd[3237]: leader election: renewing lease for node-13
+2026-09-06T10:08:38Z scheduler[8606]: connection from 10.0.192.85:18345 accepted
+2026-09-06T10:08:39Z nginx[8648]: connection from 10.0.159.224:30238 accepted
+2026-09-06T10:08:40Z systemd[2766]: started session 23 of user deploy
+2026-09-06T10:08:41Z kube-proxy[5044]: leader election: renewing lease for node-23
+2026-09-06T10:08:42Z scheduler[6845]: reconciling deployment default/web-5: 3 replicas ready
+2026-09-06T10:08:43Z kube-proxy[5408]: request GET /api/v1/pods latency=256ms status=200
+2026-09-06T10:08:44Z api-server[892]: health check passed for backend-11 in 830ms
+2026-09-06T10:08:45Z nginx[899]: health check passed for backend-32 in 63ms
+2026-09-06T10:08:46Z etcd[9518]: warning: disk usage on /var/lib at 93% (threshold 85%)
+2026-09-06T10:08:47Z etcd[5175]: request GET /api/v1/pods latency=559ms status=200
+2026-09-06T10:08:48Z etcd[1261]: ERROR failed to pull image registry.local/app:37: manifest unknown
+2026-09-06T10:08:49Z api-server[2542]: TLS handshake error from 10.0.143.212:51259: EOF
+2026-09-06T10:08:50Z nginx[7177]: TLS handshake error from 10.0.19.186:1974: EOF
+2026-09-06T10:08:51Z sshd[9486]: warning: disk usage on /var/lib at 71% (threshold 85%)
+2026-09-06T10:08:52Z kube-proxy[6545]: health check passed for backend-3 in 15ms
+2026-09-06T10:08:53Z nginx[769]: started session 36 of user deploy
+2026-09-06T10:08:54Z sshd[5323]: started session 25 of user deploy
+2026-09-06T10:08:55Z kube-proxy[628]: started session 23 of user deploy
+2026-09-06T10:08:56Z etcd[7599]: started session 4 of user deploy
+2026-09-06T10:08:57Z systemd[5400]: leader election: renewing lease for node-8
+2026-09-06T10:08:58Z etcd[1005]: TLS handshake error from 10.0.156.204:10453: EOF
+2026-09-06T10:08:59Z systemd[6325]: started session 32 of user deploy
+2026-09-06T10:09:00Z api-server[6041]: warning: disk usage on /var/lib at 88% (threshold 85%)
+2026-09-06T10:09:01Z api-server[1381]: connection from 10.0.116.56:34644 accepted
+2026-09-06T10:09:02Z etcd[1964]: ERROR failed to pull image registry.local/app:20: manifest unknown
+2026-09-06T10:09:03Z kube-proxy[828]: leader election: renewing lease for node-1
+2026-09-06T10:09:04Z systemd[6928]: ERROR failed to pull image registry.local/app:40: manifest unknown
+2026-09-06T10:09:05Z sshd[4492]: connection from 10.0.127.151:18473 accepted
+2026-09-06T10:09:06Z etcd[4764]: health check passed for backend-17 in 60ms
+2026-09-06T10:09:07Z sshd[6300]: warning: disk usage on /var/lib at 72% (threshold 85%)
+2026-09-06T10:09:08Z api-server[816]: request GET /api/v1/pods latency=355ms status=200
+2026-09-06T10:09:09Z etcd[1506]: ERROR failed to pull image registry.local/app:13: manifest unknown
+2026-09-06T10:09:10Z systemd[2097]: request GET /api/v1/pods latency=362ms status=200
+2026-09-06T10:09:11Z api-server[4041]: reconciling deployment default/web-16: 3 replicas ready
+2026-09-06T10:09:12Z etcd[1792]: request GET /api/v1/pods latency=367ms status=200
+2026-09-06T10:09:13Z nginx[7651]: leader election: renewing lease for node-33
+2026-09-06T10:09:14Z kube-proxy[4743]: started session 20 of user deploy
+2026-09-06T10:09:15Z kube-proxy[1216]: connection from 10.0.210.177:53451 accepted
+2026-09-06T10:09:16Z sshd[9659]: request GET /api/v1/pods latency=641ms status=200
+2026-09-06T10:09:17Z etcd[3824]: reconciling deployment default/web-27: 3 replicas ready
+2026-09-06T10:09:18Z api-server[2482]: warning: disk usage on /var/lib at 94% (threshold 85%)
+2026-09-06T10:09:19Z api-server[9911]: reconciling deployment default/web-28: 3 replicas ready
+2026-09-06T10:09:20Z kube-proxy[1785]: leader election: renewing lease for node-2
+2026-09-06T10:09:21Z nginx[7923]: ERROR failed to pull image registry.local/app:7: manifest unknown
+2026-09-06T10:09:22Z nginx[6718]: ERROR failed to pull image registry.local/app:6: manifest unknown
+2026-09-06T10:09:23Z systemd[7475]: reconciling deployment default/web-17: 3 replicas ready
+2026-09-06T10:09:24Z etcd[7369]: leader election: renewing lease for node-18
+2026-09-06T10:09:25Z sshd[6031]: connection from 10.0.175.188:22080 accepted
+2026-09-06T10:09:26Z etcd[6661]: TLS handshake error from 10.0.192.52:2165: EOF
+2026-09-06T10:09:27Z systemd[2148]: connection from 10.0.60.81:2609 accepted
+2026-09-06T10:09:28Z api-server[1457]: connection from 10.0.149.247:13934 accepted
+2026-09-06T10:09:29Z nginx[7650]: warning: disk usage on /var/lib at 61% (threshold 85%)
+2026-09-06T10:09:30Z kube-proxy[143]: reconciling deployment default/web-29: 3 replicas ready
+2026-09-06T10:09:31Z systemd[3805]: leader election: renewing lease for node-4
+2026-09-06T10:09:32Z etcd[8245]: health check passed for backend-24 in 810ms
+2026-09-06T10:09:33Z nginx[2400]: ERROR failed to pull image registry.local/app:14: manifest unknown
+2026-09-06T10:09:34Z scheduler[7524]: request GET /api/v1/pods latency=94ms status=200
+2026-09-06T10:09:35Z sshd[8654]: health check passed for backend-34 in 632ms
+2026-09-06T10:09:36Z api-server[8647]: warning: disk usage on /var/lib at 85% (threshold 85%)
+2026-09-06T10:09:37Z api-server[5138]: connection from 10.0.234.147:38173 accepted
+2026-09-06T10:09:38Z scheduler[7418]: request GET /api/v1/pods latency=262ms status=200
+2026-09-06T10:09:39Z sshd[211]: request GET /api/v1/pods latency=79ms status=200
+2026-09-06T10:09:40Z api-server[182]: request GET /api/v1/pods latency=108ms status=200
+2026-09-06T10:09:41Z sshd[427]: connection from 10.0.9.80:50093 accepted
+2026-09-06T10:09:42Z kube-proxy[6676]: health check passed for backend-20 in 528ms
+2026-09-06T10:09:43Z api-server[4923]: health check passed for backend-37 in 16ms
+2026-09-06T10:09:44Z etcd[5812]: request GET /api/v1/pods latency=158ms status=200
+2026-09-06T10:09:45Z etcd[7894]: reconciling deployment default/web-30: 3 replicas ready
+2026-09-06T10:09:46Z systemd[4212]: request GET /api/v1/pods latency=177ms status=200
+2026-09-06T10:09:47Z etcd[7900]: TLS handshake error from 10.0.170.93:4761: EOF
+2026-09-06T10:09:48Z nginx[5818]: connection from 10.0.155.82:61629 accepted
+2026-09-06T10:09:49Z etcd[4432]: connection from 10.0.229.213:41809 accepted
+2026-09-06T10:09:50Z nginx[880]: health check passed for backend-23 in 250ms
+2026-09-06T10:09:51Z etcd[517]: started session 39 of user deploy
+2026-09-06T10:09:52Z nginx[6657]: connection from 10.0.235.248:17410 accepted
+2026-09-06T10:09:53Z etcd[7032]: ERROR failed to pull image registry.local/app:4: manifest unknown
+2026-09-06T10:09:54Z etcd[4449]: ERROR failed to pull image registry.local/app:31: manifest unknown
+2026-09-06T10:09:55Z api-server[392]: TLS handshake error from 10.0.118.13:49506: EOF
+2026-09-06T10:09:56Z api-server[4095]: started session 13 of user deploy
+2026-09-06T10:09:57Z scheduler[8958]: connection from 10.0.160.39:53341 accepted
+2026-09-06T10:09:58Z etcd[4941]: health check passed for backend-12 in 269ms
+2026-09-06T10:09:59Z kube-proxy[9907]: TLS handshake error from 10.0.140.59:26652: EOF
+2026-09-06T10:10:00Z api-server[2638]: TLS handshake error from 10.0.84.5:3748: EOF
+2026-09-06T10:10:01Z nginx[6149]: request GET /api/v1/pods latency=192ms status=200
+2026-09-06T10:10:02Z api-server[263]: reconciling deployment default/web-2: 3 replicas ready
+2026-09-06T10:10:03Z nginx[6808]: TLS handshake error from 10.0.188.88:6678: EOF
+2026-09-06T10:10:04Z kube-proxy[8691]: warning: disk usage on /var/lib at 69% (threshold 85%)
+2026-09-06T10:10:05Z api-server[9647]: leader election: renewing lease for node-8
+2026-09-06T10:10:06Z etcd[7417]: ERROR failed to pull image registry.local/app:17: manifest unknown
+2026-09-06T10:10:07Z etcd[3038]: leader election: renewing lease for node-21
+2026-09-06T10:10:08Z systemd[5864]: TLS handshake error from 10.0.229.198:6326: EOF
+2026-09-06T10:10:09Z scheduler[9841]: leader election: renewing lease for node-11
+2026-09-06T10:10:10Z scheduler[6803]: started session 9 of user deploy
+2026-09-06T10:10:11Z nginx[3856]: request GET /api/v1/pods latency=640ms status=200
+2026-09-06T10:10:12Z scheduler[6736]: started session 39 of user deploy
+2026-09-06T10:10:13Z api-server[7460]: connection from 10.0.158.46:11991 accepted
+2026-09-06T10:10:14Z scheduler[5238]: leader election: renewing lease for node-17
+2026-09-06T10:10:15Z systemd[568]: health check passed for backend-20 in 225ms
+2026-09-06T10:10:16Z api-server[7171]: health check passed for backend-1 in 383ms
+2026-09-06T10:10:17Z kube-proxy[4253]: warning: disk usage on /var/lib at 84% (threshold 85%)
+2026-09-06T10:10:18Z etcd[7794]: ERROR failed to pull image registry.local/app:37: manifest unknown
+2026-09-06T10:10:19Z etcd[2434]: leader election: renewing lease for node-28
+2026-09-06T10:10:20Z systemd[7668]: reconciling deployment default/web-39: 3 replicas ready
+2026-09-06T10:10:21Z kube-proxy[8728]: warning: disk usage on /var/lib at 86% (threshold 85%)
+2026-09-06T10:10:22Z systemd[3529]: reconciling deployment default/web-11: 3 replicas ready
+2026-09-06T10:10:23Z systemd[2708]: reconciling deployment default/web-37: 3 replicas ready
+2026-09-06T10:10:24Z etcd[3142]: connection from 10.0.53.33:62274 accepted
+2026-09-06T10:10:25Z scheduler[4369]: connection from 10.0.142.147:62930 accepted
+2026-09-06T10:10:26Z nginx[5694]: TLS handshake error from 10.0.133.218:8080: EOF
+2026-09-06T10:10:27Z nginx[7067]: started session 38 of user deploy
+2026-09-06T10:10:28Z sshd[2561]: started session 35 of user deploy
+2026-09-06T10:10:29Z etcd[5586]: connection from 10.0.4.33:26351 accepted
+2026-09-06T10:10:30Z api-server[9173]: ERROR failed to pull image registry.local/app:8: manifest unknown
+2026-09-06T10:10:31Z nginx[1460]: warning: disk usage on /var/lib at 69% (threshold 85%)
+2026-09-06T10:10:32Z scheduler[3494]: connection from 10.0.181.54:58715 accepted
+2026-09-06T10:10:33Z kube-proxy[2904]: TLS handshake error from 10.0.46.27:62235: EOF
+2026-09-06T10:10:34Z api-server[4696]: warning: disk usage on /var/lib at 60% (threshold 85%)
+2026-09-06T10:10:35Z systemd[5555]: started session 40 of user deploy
+2026-09-06T10:10:36Z api-server[1872]: reconciling deployment default/web-37: 3 replicas ready
+2026-09-06T10:10:37Z etcd[5517]: reconciling deployment default/web-3: 3 replicas ready
+2026-09-06T10:10:38Z nginx[1684]: request GET /api/v1/pods latency=247ms status=200
+2026-09-06T10:10:39Z kube-proxy[2359]: started session 15 of user deploy
+2026-09-06T10:10:40Z scheduler[4155]: connection from 10.0.27.120:32259 accepted
+2026-09-06T10:10:41Z scheduler[7484]: warning: disk usage on /var/lib at 66% (threshold 85%)
+2026-09-06T10:10:42Z sshd[2717]: warning: disk usage on /var/lib at 88% (threshold 85%)
+2026-09-06T10:10:43Z kube-proxy[9874]: warning: disk usage on /var/lib at 70% (threshold 85%)
+2026-09-06T10:10:44Z sshd[9370]: ERROR failed to pull image registry.local/app:39: manifest unknown
+2026-09-06T10:10:45Z kube-proxy[4840]: reconciling deployment default/web-14: 3 replicas ready
+2026-09-06T10:10:46Z api-server[9084]: TLS handshake error from 10.0.12.93:54439: EOF
+2026-09-06T10:10:47Z etcd[530]: connection from 10.0.24.14:27697 accepted
+2026-09-06T10:10:48Z nginx[1123]: ERROR failed to pull image registry.local/app:3: manifest unknown
+2026-09-06T10:10:49Z sshd[1709]: TLS handshake error from 10.0.60.159:46240: EOF
+2026-09-06T10:10:50Z nginx[1874]: ERROR failed to pull image registry.local/app:27: manifest unknown
+2026-09-06T10:10:51Z scheduler[4358]: leader election: renewing lease for node-16
+2026-09-06T10:10:52Z systemd[3843]: started session 32 of user deploy
+2026-09-06T10:10:53Z kube-proxy[3840]: leader election: renewing lease for node-30
+2026-09-06T10:10:54Z etcd[3245]: request GET /api/v1/pods latency=689ms status=200
+2026-09-06T10:10:55Z sshd[8180]: ERROR failed to pull image registry.local/app:25: manifest unknown
+2026-09-06T10:10:56Z sshd[7573]: leader election: renewing lease for node-38
+2026-09-06T10:10:57Z systemd[1151]: started session 35 of user deploy
+2026-09-06T10:10:58Z systemd[8476]: reconciling deployment default/web-20: 3 replicas ready
+2026-09-06T10:10:59Z systemd[3502]: started session 21 of user deploy
+2026-09-06T10:11:00Z api-server[2784]: request GET /api/v1/pods latency=105ms status=200
+2026-09-06T10:11:01Z api-server[6072]: TLS handshake error from 10.0.108.108:53037: EOF
+2026-09-06T10:11:02Z kube-proxy[2074]: started session 29 of user deploy
+2026-09-06T10:11:03Z nginx[9993]: ERROR failed to pull image registry.local/app:26: manifest unknown
+2026-09-06T10:11:04Z nginx[4474]: leader election: renewing lease for node-28
+2026-09-06T10:11:05Z api-server[3976]: health check passed for backend-10 in 37ms
+2026-09-06T10:11:06Z kube-proxy[1323]: leader election: renewing lease for node-19
+2026-09-06T10:11:07Z sshd[554]: reconciling deployment default/web-9: 3 replicas ready
+2026-09-06T10:11:08Z scheduler[2851]: health check passed for backend-2 in 539ms
+2026-09-06T10:11:09Z etcd[1601]: connection from 10.0.85.168:57407 accepted
+2026-09-06T10:11:10Z kube-proxy[4341]: TLS handshake error from 10.0.13.244:45452: EOF
+2026-09-06T10:11:11Z systemd[3641]: started session 32 of user deploy
+2026-09-06T10:11:12Z etcd[4642]: request GET /api/v1/pods latency=644ms status=200
+2026-09-06T10:11:13Z sshd[9946]: warning: disk usage on /var/lib at 65% (threshold 85%)
+2026-09-06T10:11:14Z etcd[7226]: leader election: renewing lease for node-31
+2026-09-06T10:11:15Z sshd[3356]: leader election: renewing lease for node-11
+2026-09-06T10:11:16Z systemd[4322]: reconciling deployment default/web-37: 3 replicas ready
+2026-09-06T10:11:17Z nginx[7324]: health check passed for backend-24 in 339ms
+2026-09-06T10:11:18Z etcd[6896]: ERROR failed to pull image registry.local/app:10: manifest unknown
+2026-09-06T10:11:19Z api-server[278]: warning: disk usage on /var/lib at 76% (threshold 85%)
+2026-09-06T10:11:20Z systemd[6989]: ERROR failed to pull image registry.local/app:8: manifest unknown
+2026-09-06T10:11:21Z scheduler[3124]: health check passed for backend-30 in 740ms
+2026-09-06T10:11:22Z nginx[9383]: started session 19 of user deploy
+2026-09-06T10:11:23Z sshd[822]: health check passed for backend-13 in 610ms
+2026-09-06T10:11:24Z kube-proxy[9173]: warning: disk usage on /var/lib at 86% (threshold 85%)
+2026-09-06T10:11:25Z etcd[1003]: ERROR failed to pull image registry.local/app:36: manifest unknown
+2026-09-06T10:11:26Z nginx[3260]: ERROR failed to pull image registry.local/app:25: manifest unknown
+2026-09-06T10:11:27Z scheduler[9119]: reconciling deployment default/web-3: 3 replicas ready
+2026-09-06T10:11:28Z systemd[4503]: connection from 10.0.85.174:7790 accepted
+2026-09-06T10:11:29Z kube-proxy[787]: started session 6 of user deploy
+2026-09-06T10:11:30Z api-server[9701]: started session 33 of user deploy
+2026-09-06T10:11:31Z systemd[3117]: connection from 10.0.251.201:17207 accepted
+2026-09-06T10:11:32Z scheduler[552]: health check passed for backend-26 in 238ms
+2026-09-06T10:11:33Z kube-proxy[4983]: leader election: renewing lease for node-3
+2026-09-06T10:11:34Z sshd[7600]: health check passed for backend-23 in 690ms
+2026-09-06T10:11:35Z sshd[7654]: TLS handshake error from 10.0.114.159:39149: EOF
+2026-09-06T10:11:36Z systemd[9975]: warning: disk usage on /var/lib at 64% (threshold 85%)
+2026-09-06T10:11:37Z api-server[7845]: started session 36 of user deploy
+2026-09-06T10:11:38Z systemd[6863]: leader election: renewing lease for node-30
+2026-09-06T10:11:39Z scheduler[3260]: TLS handshake error from 10.0.91.21:38144: EOF
+2026-09-06T10:11:40Z etcd[7238]: health check passed for backend-19 in 257ms
+2026-09-06T10:11:41Z etcd[7961]: connection from 10.0.252.18:31942 accepted
+2026-09-06T10:11:42Z scheduler[2471]: request GET /api/v1/pods latency=429ms status=200
+2026-09-06T10:11:43Z api-server[2319]: health check passed for backend-37 in 664ms
+2026-09-06T10:11:44Z api-server[8912]: ERROR failed to pull image registry.local/app:1: manifest unknown
+2026-09-06T10:11:45Z etcd[7263]: health check passed for backend-28 in 6ms
+2026-09-06T10:11:46Z scheduler[7797]: connection from 10.0.16.12:17320 accepted
+2026-09-06T10:11:47Z api-server[872]: warning: disk usage on /var/lib at 90% (threshold 85%)
+2026-09-06T10:11:48Z systemd[3655]: request GET /api/v1/pods latency=150ms status=200
+2026-09-06T10:11:49Z systemd[7457]: warning: disk usage on /var/lib at 63% (threshold 85%)
+2026-09-06T10:11:50Z nginx[1020]: health check passed for backend-4 in 74ms
+2026-09-06T10:11:51Z etcd[1745]: warning: disk usage on /var/lib at 91% (threshold 85%)
+2026-09-06T10:11:52Z systemd[3387]: ERROR failed to pull image registry.local/app:21: manifest unknown
+2026-09-06T10:11:53Z kube-proxy[3136]: ERROR failed to pull image registry.local/app:34: manifest unknown
+2026-09-06T10:11:54Z etcd[8781]: TLS handshake error from 10.0.34.26:19719: EOF
+2026-09-06T10:11:55Z systemd[906]: leader election: renewing lease for node-8
+2026-09-06T10:11:56Z kube-proxy[377]: started session 37 of user deploy
+2026-09-06T10:11:57Z sshd[1596]: connection from 10.0.16.6:16323 accepted
+2026-09-06T10:11:58Z kube-proxy[4439]: reconciling deployment default/web-7: 3 replicas ready
+2026-09-06T10:11:59Z etcd[4479]: reconciling deployment default/web-8: 3 replicas ready
+2026-09-06T10:12:00Z systemd[216]: TLS handshake error from 10.0.27.17:27807: EOF
+2026-09-06T10:12:01Z etcd[8847]: leader election: renewing lease for node-5
+2026-09-06T10:12:02Z nginx[4792]: request GET /api/v1/pods latency=634ms status=200
+2026-09-06T10:12:03Z api-server[9352]: ERROR failed to pull image registry.local/app:14: manifest unknown
+2026-09-06T10:12:04Z systemd[5230]: warning: disk usage on /var/lib at 82% (threshold 85%)
+2026-09-06T10:12:05Z scheduler[7016]: TLS handshake error from 10.0.12.209:59796: EOF
+2026-09-06T10:12:06Z sshd[9263]: TLS handshake error from 10.0.122.34:56786: EOF
+2026-09-06T10:12:07Z kube-proxy[3267]: reconciling deployment default/web-25: 3 replicas ready
+2026-09-06T10:12:08Z systemd[9087]: connection from 10.0.172.207:56903 accepted
+2026-09-06T10:12:09Z etcd[5016]: connection from 10.0.186.40:11781 accepted
+2026-09-06T10:12:10Z sshd[7701]: reconciling deployment default/web-29: 3 replicas ready
+2026-09-06T10:12:11Z nginx[591]: leader election: renewing lease for node-23
+2026-09-06T10:12:12Z etcd[892]: leader election: renewing lease for node-8
+2026-09-06T10:12:13Z nginx[7554]: request GET /api/v1/pods latency=564ms status=200
+2026-09-06T10:12:14Z kube-proxy[5934]: health check passed for backend-14 in 210ms
+2026-09-06T10:12:15Z api-server[1072]: TLS handshake error from 10.0.3.77:46557: EOF
+2026-09-06T10:12:16Z sshd[2480]: TLS handshake error from 10.0.84.106:6154: EOF
+2026-09-06T10:12:17Z etcd[479]: health check passed for backend-21 in 661ms
+2026-09-06T10:12:18Z nginx[1883]: request GET /api/v1/pods latency=8ms status=200
+2026-09-06T10:12:19Z api-server[5078]: started session 31 of user deploy
+2026-09-06T10:12:20Z kube-proxy[2821]: started session 3 of user deploy
+2026-09-06T10:12:21Z api-server[842]: leader election: renewing lease for node-13
+2026-09-06T10:12:22Z etcd[9012]: ERROR failed to pull image registry.local/app:18: manifest unknown
+2026-09-06T10:12:23Z scheduler[7958]: request GET /api/v1/pods latency=668ms status=200
+2026-09-06T10:12:24Z sshd[5463]: reconciling deployment default/web-3: 3 replicas ready
+2026-09-06T10:12:25Z sshd[3371]: started session 2 of user deploy
+2026-09-06T10:12:26Z api-server[3077]: TLS handshake error from 10.0.99.178:11259: EOF
+2026-09-06T10:12:27Z api-server[6155]: started session 14 of user deploy
+2026-09-06T10:12:28Z scheduler[1811]: started session 27 of user deploy
+2026-09-06T10:12:29Z etcd[6841]: reconciling deployment default/web-24: 3 replicas ready
+2026-09-06T10:12:30Z nginx[5289]: reconciling deployment default/web-24: 3 replicas ready
+2026-09-06T10:12:31Z scheduler[4168]: connection from 10.0.192.221:61462 accepted
+2026-09-06T10:12:32Z kube-proxy[5044]: started session 20 of user deploy
+2026-09-06T10:12:33Z etcd[2661]: request GET /api/v1/pods latency=590ms status=200
+2026-09-06T10:12:34Z nginx[149]: warning: disk usage on /var/lib at 99% (threshold 85%)
+2026-09-06T10:12:35Z kube-proxy[5683]: reconciling deployment default/web-33: 3 replicas ready
+2026-09-06T10:12:36Z etcd[7488]: reconciling deployment default/web-26: 3 replicas ready
+2026-09-06T10:12:37Z systemd[6972]: health check passed for backend-14 in 465ms
+2026-09-06T10:12:38Z sshd[902]: started session 32 of user deploy
+2026-09-06T10:12:39Z nginx[8862]: TLS handshake error from 10.0.253.94:43022: EOF
+2026-09-06T10:12:40Z nginx[5777]: reconciling deployment default/web-22: 3 replicas ready
+2026-09-06T10:12:41Z sshd[206]: health check passed for backend-35 in 408ms
+2026-09-06T10:12:42Z scheduler[3711]: TLS handshake error from 10.0.11.244:39813: EOF
+2026-09-06T10:12:43Z api-server[3662]: connection from 10.0.156.132:53445 accepted
+2026-09-06T10:12:44Z etcd[936]: request GET /api/v1/pods latency=55ms status=200
+2026-09-06T10:12:45Z api-server[6760]: health check passed for backend-39 in 19ms
+2026-09-06T10:12:46Z etcd[2756]: reconciling deployment default/web-35: 3 replicas ready
+2026-09-06T10:12:47Z systemd[4536]: warning: disk usage on /var/lib at 75% (threshold 85%)
+2026-09-06T10:12:48Z nginx[6398]: TLS handshake error from 10.0.96.236:38474: EOF
+2026-09-06T10:12:49Z systemd[2774]: warning: disk usage on /var/lib at 84% (threshold 85%)
+2026-09-06T10:12:50Z kube-proxy[575]: health check passed for backend-7 in 762ms
+2026-09-06T10:12:51Z scheduler[6272]: connection from 10.0.178.23:63119 accepted
+2026-09-06T10:12:52Z nginx[5416]: reconciling deployment default/web-34: 3 replicas ready
+2026-09-06T10:12:53Z scheduler[9706]: started session 10 of user deploy
+2026-09-06T10:12:54Z systemd[1346]: started session 10 of user deploy
+2026-09-06T10:12:55Z etcd[6483]: leader election: renewing lease for node-15
+2026-09-06T10:12:56Z sshd[9696]: ERROR failed to pull image registry.local/app:7: manifest unknown
+2026-09-06T10:12:57Z scheduler[7066]: health check passed for backend-27 in 557ms
+2026-09-06T10:12:58Z api-server[5121]: ERROR failed to pull image registry.local/app:22: manifest unknown
+2026-09-06T10:12:59Z etcd[8635]: warning: disk usage on /var/lib at 97% (threshold 85%)
+2026-09-06T10:13:00Z etcd[5791]: ERROR failed to pull image registry.local/app:7: manifest unknown
+2026-09-06T10:13:01Z kube-proxy[8190]: health check passed for backend-5 in 53ms
+2026-09-06T10:13:02Z sshd[2749]: reconciling deployment default/web-16: 3 replicas ready
+2026-09-06T10:13:03Z scheduler[5829]: health check passed for backend-23 in 530ms
+2026-09-06T10:13:04Z api-server[8510]: warning: disk usage on /var/lib at 98% (threshold 85%)
+2026-09-06T10:13:05Z scheduler[2041]: request GET /api/v1/pods latency=32ms status=200
+2026-09-06T10:13:06Z nginx[9698]: ERROR failed to pull image registry.local/app:40: manifest unknown
+2026-09-06T10:13:07Z kube-proxy[6308]: leader election: renewing lease for node-22
+2026-09-06T10:13:08Z kube-proxy[7590]: TLS handshake error from 10.0.6.96:61519: EOF
+2026-09-06T10:13:09Z scheduler[933]: started session 13 of user deploy
+2026-09-06T10:13:10Z kube-proxy[8608]: warning: disk usage on /var/lib at 66% (threshold 85%)
+2026-09-06T10:13:11Z api-server[451]: warning: disk usage on /var/lib at 72% (threshold 85%)
+2026-09-06T10:13:12Z systemd[3792]: leader election: renewing lease for node-22
+2026-09-06T10:13:13Z nginx[9306]: health check passed for backend-34 in 204ms
+2026-09-06T10:13:14Z api-server[8696]: request GET /api/v1/pods latency=185ms status=200
+2026-09-06T10:13:15Z api-server[3751]: leader election: renewing lease for node-37
+2026-09-06T10:13:16Z etcd[3372]: TLS handshake error from 10.0.142.196:9593: EOF
+2026-09-06T10:13:17Z nginx[9752]: warning: disk usage on /var/lib at 84% (threshold 85%)
+2026-09-06T10:13:18Z nginx[2552]: leader election: renewing lease for node-4
+2026-09-06T10:13:19Z scheduler[6303]: warning: disk usage on /var/lib at 96% (threshold 85%)

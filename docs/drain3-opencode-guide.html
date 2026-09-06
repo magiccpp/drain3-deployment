@@ -1,0 +1,837 @@
+<title>Drain3 for OpenCode</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #F6F7F9; --surface: #FFFFFF; --ink: #1C2128; --ink-2: #4B5563; --ink-3: #6F7886; --line: #DCE0E6;
+    --accent: #3F5BD9; --accent-ink: #FFFFFF; --wild: #B26E10; --code-bg: #EEF0F4; --code-ink: #1F2530; --ok: #1F7A4D; --warn: #A05A00;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15181D; --surface: #1C2026; --ink: #E7EAEF; --ink-2: #B4BBC7; --ink-3: #8A93A2; --line: #2C323B;
+      --accent: #8AA0FF; --accent-ink: #0F1320; --wild: #E0A24A; --code-bg: #0F1216; --code-ink: #DDE2EA; --ok: #5CC48A; --warn: #E8B15C;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15181D; --surface: #1C2026; --ink: #E7EAEF; --ink-2: #B4BBC7; --ink-3: #8A93A2; --line: #2C323B;
+    --accent: #8AA0FF; --accent-ink: #0F1320; --wild: #E0A24A; --code-bg: #0F1216; --code-ink: #DDE2EA; --ok: #5CC48A; --warn: #E8B15C;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; font-size: 16px; line-height: 1.6; }
+  main { max-width: 74ch; margin: 0 auto; padding: 48px 24px 96px; }
+  h1, h2, h3 { text-wrap: balance; line-height: 1.2; margin: 0; }
+  h1 { font-size: 2.1rem; font-weight: 600; letter-spacing: -0.01em; }
+  h2 { font-size: 1.35rem; font-weight: 600; }
+  h3 { font-size: 1.05rem; font-weight: 600; }
+  p { margin: 0; max-width: 68ch; }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  code, pre, kbd { font-family: "IBM Plex Mono", "Cascadia Mono", Consolas, monospace; }
+  p code, li code, td code, summary code { background: var(--code-bg); color: var(--code-ink); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  .eyebrow { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); font-weight: 500; }
+  header { display: grid; gap: 14px; padding-bottom: 32px; border-bottom: 1px solid var(--line); }
+  header p.lede { font-size: 1.1rem; color: var(--ink-2); }
+  .facts { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 28px; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); }
+  .fact { padding: 14px 16px; border-right: 1px solid var(--line); display: grid; gap: 2px; }
+  .fact:last-child { border-right: 0; }
+  .fact .n { font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .fact .l { font-size: 0.8rem; color: var(--ink-3); }
+  @media (max-width: 560px) { .facts { grid-template-columns: 1fr; } .fact { border-right: 0; border-bottom: 1px solid var(--line); } .fact:last-child { border-bottom: 0; } }
+  nav.toc { margin-top: 28px; display: grid; gap: 6px; }
+  nav.toc ol { margin: 0; padding-left: 1.4em; display: grid; gap: 4px; color: var(--ink-2); }
+  nav.toc a { color: var(--ink); text-decoration: none; }
+  nav.toc a:hover { color: var(--accent); text-decoration: underline; }
+  section.step { display: grid; gap: 16px; padding: 40px 0 8px; border-bottom: 1px solid var(--line); scroll-margin-top: 24px; }
+  section.step:last-of-type { border-bottom: 0; }
+  .step-head { display: grid; grid-template-columns: 40px 1fr; gap: 14px; align-items: start; }
+  .marker { width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-weight: 600; font-variant-numeric: tabular-nums; display: grid; place-items: center; font-size: 0.95rem; margin-top: 1px; }
+  .step-body { display: grid; gap: 14px; padding-left: 54px; }
+  @media (max-width: 560px) { .step-body { padding-left: 0; } }
+  ul { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; max-width: 68ch; }
+  li { padding-left: 0.2em; }
+  figure.code { margin: 0; border: 1px solid var(--line); border-radius: 6px; background: var(--code-bg); overflow: hidden; }
+  figure.code figcaption { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 6px 12px; font-size: 0.75rem; letter-spacing: 0.04em; color: var(--ink-3); border-bottom: 1px solid var(--line); font-family: "IBM Plex Mono", monospace; }
+  figure.code button { font: inherit; font-size: 0.72rem; color: var(--ink-2); background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 2px 8px; cursor: pointer; }
+  figure.code button:hover { color: var(--accent); border-color: var(--accent); }
+  figure.code pre { margin: 0; padding: 12px 14px; overflow-x: auto; font-size: 0.82rem; line-height: 1.5; color: var(--code-ink); tab-size: 4; }
+  figure.code pre.tall { max-height: 520px; overflow-y: auto; }
+  details.src { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+  details.src summary { padding: 10px 14px; cursor: pointer; color: var(--ink-2); }
+  details.src figure.code { border: 0; border-top: 1px solid var(--line); border-radius: 0; }
+  .w { color: var(--wild); font-weight: 500; }
+  .cm { color: var(--ink-3); }
+  aside.note { border-left: 3px solid var(--accent); padding: 8px 14px; color: var(--ink-2); background: var(--surface); border-radius: 0 6px 6px 0; max-width: 68ch; }
+  aside.note.warn { border-left-color: var(--warn); }
+  aside.note strong { color: var(--ink); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 500; color: var(--ink-3); font-size: 0.78rem; letter-spacing: 0.04em; text-transform: uppercase; }
+  tr:last-child td { border-bottom: 0; }
+  td.num { text-align: right; }
+  .ok { color: var(--ok); font-weight: 500; }
+  .shot { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 14px 16px; display: grid; gap: 10px; font-size: 0.9rem; }
+  .shot .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+  .shot .tile { border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; display: grid; gap: 1px; }
+  .shot .tile .v { font-size: 1.25rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .shot .tile .l { font-size: 0.7rem; color: var(--ink-3); letter-spacing: 0.04em; text-transform: uppercase; }
+  .shot .tile.hero .v { color: var(--ok); }
+  footer { margin-top: 48px; color: var(--ink-3); font-size: 0.85rem; max-width: 68ch; }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">Field guide · Ubuntu 22.04 / 24.04</div>
+    <h1>Drain3 log summaries for OpenCode</h1>
+    <p class="lede">Repetitive log output is the most expensive thing a coding agent reads. This guide installs the Drain3 template miner, wraps it as a one-command summarizer, hooks it into OpenCode so the model sees nine templates with counts instead of eight hundred lines, and puts a browser dashboard on top so you can see what it saved. Every step was run and verified on a real machine; the numbers below are from that run.</p>
+    <div class="facts">
+      <div class="fact"><span class="n">800 → 28</span><span class="l">log lines the model reads, sample syslog</span></div>
+      <div class="fact"><span class="n">25,827 → 875</span><span class="l">tokens, exact cl100k count</span></div>
+      <div class="fact"><span class="n">0.2 s</span><span class="l">added per log command, CPU only</span></div>
+    </div>
+    <nav class="toc">
+      <div class="eyebrow">Steps</div>
+      <ol>
+        <li><a href="#s1">Install uv and Drain3</a></li>
+        <li><a href="#s2">Write the summarizer</a></li>
+        <li><a href="#s3">Expose it as a command and test it alone</a></li>
+        <li><a href="#s4">Install OpenCode and give it a model</a></li>
+        <li><a href="#s5">Add the plugin</a></li>
+        <li><a href="#s6">Run the end-to-end test</a></li>
+        <li><a href="#s7">Put a statistics dashboard in the browser</a></li>
+      </ol>
+      <p style="color: var(--ink-3); font-size: 0.9rem;">Then: tuning, limits, and removal.</p>
+    </nav>
+  </header>
+
+  <section class="step" id="s0">
+    <h2>What Drain does</h2>
+    <p>Drain parses each log line into a <em>template</em> (the fixed words) and <em>parameters</em> (the parts that vary), online, in one pass, using a fixed-depth parse tree. It runs at hundreds of thousands of lines per second on a CPU. Given masks for the fields that always vary, it turns this:</p>
+    <figure class="code"><figcaption><span>raw log, 3 of 87 lines</span></figcaption><pre>2026-09-06T10:00:23Z scheduler[6815]: TLS handshake error from 10.0.128.31:40135: EOF
+2026-09-06T10:00:28Z sshd[9408]: TLS handshake error from 10.0.81.62:15644: EOF
+2026-09-06T10:00:40Z systemd[684]: TLS handshake error from 10.0.172.203:25088: EOF</pre></figure>
+    <p>into this, which is what the model will receive:</p>
+    <figure class="code"><figcaption><span>logsum output, same lines</span></figcaption><pre>   87x  <span class="w">&lt;TS&gt;</span> <span class="w">&lt;*&gt;</span> TLS handshake error from <span class="w">&lt;IP:PORT&gt;</span>: EOF   (lines 24-797)
+         time 2026-09-06T10:00:23Z .. 2026-09-06T10:13:16Z
+         IP:PORT: 87 distinct, e.g. 10.0.1.10:4117, 10.0.10.12:13612, ...</pre></figure>
+    <p>Word-level compressors such as LLMLingua-2 are the wrong tool for this: they drop PIDs, IP octets and keywords because those look like low-information tokens. Template mining keeps every distinct value and only removes repetition.</p>
+  </section>
+
+  <section class="step" id="s1">
+    <div class="step-head"><div class="marker">1</div><h2>Install uv and Drain3</h2></div>
+    <div class="step-body">
+      <p>Nothing here needs sudo. uv manages Python and the virtual environment; Drain3 is a pure-Python package. tiktoken is optional: with it the dashboard reports exact token counts, without it a regex estimate that is within about two percent on logs.</p>
+      <figure class="code"><figcaption><span>shell</span><button type="button" data-copy>Copy</button></figcaption><pre>curl -LsSf https://astral.sh/uv/install.sh | sh
+export PATH="$HOME/.local/bin:$PATH"     <span class="cm"># add this line to ~/.bashrc as well</span>
+
+mkdir -p ~/logsum &amp;&amp; cd ~/logsum
+uv init --bare --python 3.12 --name logsum
+uv add drain3 tiktoken</pre></figure>
+      <p>Check it: <code>uv run python -c "import drain3; print(drain3.__file__)"</code> should print a path under <code>~/logsum/.venv</code>.</p>
+    </div>
+  </section>
+
+  <section class="step" id="s2">
+    <div class="step-head"><div class="marker">2</div><h2>Write the summarizer</h2></div>
+    <div class="step-body">
+      <p>Save this as <code>~/logsum/logsum.py</code>. It reads a log on stdin and prints templates with counts and line ranges. Three rules make it safe to put in front of every log command: input of 40 lines or fewer passes through untouched, templates seen three times or fewer are printed verbatim because rare lines are the signal, and the last ten lines are always shown verbatim because the newest line is usually the one that matters.</p>
+      <p>It also records every call to <code>~/.local/share/logsum/stats.jsonl</code> for the dashboard in step 7. The record is written by a forked, detached child <em>after</em> the output has been flushed, so token counting never delays the agent. Two environment variables let callers attribute the call: <code>LOGSUM_AGENT</code> and <code>LOGSUM_CMD_B64</code>, the command in base64 so no quoting can break it.</p>
+      <figure class="code"><figcaption><span>~/logsum/logsum.py</span><button type="button" data-copy>Copy</button></figcaption><pre class="tall">"""logsum: read log lines on stdin, emit a Drain3 template summary that keeps the signal.
+
+Short input (&lt;= PASSTHROUGH_LINES) is echoed unchanged, so wiring this into every
+log-reading command is safe. Rare templates and the tail of the log are kept verbatim.
+
+Every call is recorded to a JSONL stats file (default ~/.local/share/logsum/stats.jsonl)
+*after* the output has been written and flushed, in a forked child, so the agent never
+waits for token counting. Optional env: LOGSUM_AGENT (who called), LOGSUM_CMD_B64
+(base64 of the command that produced the log), LOGSUM_STATS (file path), LOGSUM_NOSTATS=1.
+"""
+import base64
+import json
+import os
+import re
+import sys
+import time
+from collections import defaultdict
+from pathlib import Path
+
+PASSTHROUGH_LINES = 40     # below this, summarizing costs more than it saves
+RARE_MAX = 3               # templates seen this often or less are printed verbatim (they're the signal)
+TAIL_LINES = 10            # always show the most recent lines
+MAX_TEMPLATES = 60
+SEV = re.compile(r"\b(error|err|warn|warning|fail|failed|fatal|critical|panic|exception|traceback|denied|refused|timeout)\b", re.I)
+
+MASKS = [
+    (r"\d{4}-\d\d-\d\d[T ]\d\d:\d\d:\d\d(?:[.,]\d+)?(?:Z|[+-]\d\d:?\d\d)?", "TS"),
+    (r"\b[A-Z][a-z]{2} +\d{1,2} \d\d:\d\d:\d\d\b", "TS"),                 # syslog "Sep  6 10:00:00"
+    (r"\b\d\d:\d\d:\d\d(?:[.,]\d+)?\b", "TIME"),
+    (r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b", "UUID"),
+    (r"\b(?:\d{1,3}\.){3}\d{1,3}:\d+\b", "IP:PORT"),
+    (r"\b(?:\d{1,3}\.){3}\d{1,3}\b", "IP"),
+    (r"\b0x[0-9a-fA-F]+\b", "HEX"),
+    (r"\b[0-9a-f]{12,64}\b", "HASH"),
+    (r"\[\d+\]", "[PID]"),
+    (r"\b\d+(?:\.\d+)?(?:ms|s|us|µs|ns|KiB|MiB|GiB|KB|MB|GB|B)\b", "NUM+unit"),
+    (r"\b\d+%", "NUM%"),
+    (r"(?&lt;![\w.])-?\d+(?:\.\d+)?(?![\w.])", "NUM"),
+]
+
+STATS_PATH = Path(os.environ.get("LOGSUM_STATS") or Path.home() / ".local/share/logsum/stats.jsonl")
+
+
+def count_tokens(text: str) -&gt; tuple[int, str]:
+    """Exact cl100k count when tiktoken is installed, else a regex estimate (within ~2% on logs)."""
+    try:
+        import tiktoken
+        return len(tiktoken.get_encoding("cl100k_base").encode(text, disallowed_special=())), "tiktoken"
+    except Exception:
+        return len(re.findall(r"[A-Za-z]+|\d{1,3}|[^\w\s]|_", text)), "estimate"
+
+
+def record_stats(raw: str, out: str, meta: dict) -&gt; None:
+    """Append one JSON line. Called in a forked child after stdout is closed."""
+    if os.environ.get("LOGSUM_NOSTATS"):
+        return
+    try:
+        cmd = base64.b64decode(os.environ.get("LOGSUM_CMD_B64", "")).decode("utf-8", "replace") if os.environ.get("LOGSUM_CMD_B64") else ""
+    except Exception:
+        cmd = ""
+    tok_in, method = count_tokens(raw)
+    tok_out, _ = count_tokens(out)
+    rec = {
+        "ts": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+        "agent": os.environ.get("LOGSUM_AGENT", "unknown"),
+        "cmd": cmd[:200],
+        "lines_in": raw.count("\n") + (1 if raw and not raw.endswith("\n") else 0),
+        "lines_out": out.count("\n") + (1 if out and not out.endswith("\n") else 0),
+        "chars_in": len(raw), "chars_out": len(out),
+        "tok_in": tok_in, "tok_out": tok_out, "tok_method": method,
+        **meta,
+    }
+    STATS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with STATS_PATH.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+
+
+def emit_and_record(raw: str, out: str, meta: dict) -&gt; None:
+    sys.stdout.write(out)
+    sys.stdout.flush()
+    if os.environ.get("LOGSUM_NOSTATS"):
+        return
+    try:
+        pid = os.fork()
+    except OSError:
+        record_stats(raw, out, meta)   # no fork (unlikely on Linux): record inline
+        return
+    if pid == 0:
+        # child: detach (own session, ignore hangup) so a wrapper like wsl.exe tearing the console down
+        # does not kill it, release the pipe so the caller sees EOF at once, then count tokens at leisure
+        try:
+            import signal
+            os.setsid()
+            signal.signal(signal.SIGHUP, signal.SIG_IGN)
+            os.close(0); os.close(1); os.close(2)
+            record_stats(raw, out, meta)
+        finally:
+            os._exit(0)
+
+
+def summarize(lines: list[str]) -&gt; tuple[str, dict]:
+    from drain3 import TemplateMiner
+    from drain3.masking import MaskingInstruction
+    from drain3.template_miner_config import TemplateMinerConfig
+
+    cfg = TemplateMinerConfig()
+    cfg.profiling_enabled = False
+    cfg.masking_instructions = [MaskingInstruction(p, n) for p, n in MASKS]
+    miner = TemplateMiner(config=cfg)
+
+    members: dict[int, list[int]] = defaultdict(list)   # cluster id -&gt; line numbers (1-based)
+    for i, line in enumerate(lines, 1):
+        if not line.strip():
+            continue
+        r = miner.add_log_message(line)
+        members[r["cluster_id"]].append(i)
+
+    clusters = sorted(miner.drain.clusters, key=lambda c: -c.size)
+    out = [f"[logsum] {len(lines)} lines -&gt; {len(clusters)} templates (Drain3). "
+           f"Rare templates and the last {TAIL_LINES} lines are verbatim. "
+           f"Add '# nologsum' to the command to see raw output."]
+
+    rare, shown = [], 0
+    for c in clusters:
+        tmpl = c.get_template()
+        idx = members.get(c.cluster_id, [])
+        if c.size &lt;= RARE_MAX:
+            rare.extend(idx)
+            continue
+        if shown &gt;= MAX_TEMPLATES:
+            out.append(f"  ... {len(clusters) - shown} more templates omitted")
+            break
+        shown += 1
+        span = f"lines {idx[0]}-{idx[-1]}" if idx else ""
+        out.append(f"{c.size:5d}x  {tmpl}   ({span})")
+        if SEV.search(tmpl):
+            per_pos: dict[tuple, set] = defaultdict(set)
+            for i in idx:
+                params = miner.extract_parameters(tmpl, lines[i - 1], exact_matching=False) or []
+                for pos, p in enumerate(params):
+                    per_pos[(pos, p.mask_name)].add(p.value)
+            for (pos, mask), vals in sorted(per_pos.items()):
+                if mask in ("TS", "TIME"):
+                    out.append(f"         time {min(vals)} .. {max(vals)}")
+                elif mask == "[PID]" or mask == "*" and len(vals) &gt; 12:
+                    continue
+                elif all(re.fullmatch(r"-?\d+(?:\.\d+)?%?", v) for v in vals):
+                    nums = sorted(float(v.rstrip("%")) for v in vals)
+                    out.append(f"         {mask}: {len(vals)} distinct, range {nums[0]:g}-{nums[-1]:g}")
+                else:
+                    sample = ", ".join(sorted(vals)[:6])
+                    out.append(f"         {mask}: {len(vals)} distinct, e.g. {sample}{', ...' if len(vals) &gt; 6 else ''}")
+
+    if rare:
+        out.append(f"--- {len(rare)} rare lines (template seen &lt;= {RARE_MAX} times) ---")
+        out += [f"{i:6d}: {lines[i - 1]}" for i in sorted(rare)[:200]]
+        if len(rare) &gt; 200:
+            out.append(f"  ... {len(rare) - 200} more rare lines")
+    out.append(f"--- last {TAIL_LINES} lines ---")
+    out += lines[-TAIL_LINES:]
+    meta = {"templates": len(clusters), "rare_lines": len(rare),
+            "top": [[c.size, c.get_template()[:160]] for c in clusters[:5]]}
+    return "\n".join(out) + "\n", meta
+
+
+def main() -&gt; None:
+    t0 = time.perf_counter()
+    data = sys.stdin.buffer.read().decode("utf-8", "replace").lstrip("\ufeff")
+    lines = data.splitlines()
+    if len(lines) &lt;= PASSTHROUGH_LINES:
+        emit_and_record(data, data, {"passthrough": True, "templates": 0, "rare_lines": 0, "top": [],
+                                     "ms": round((time.perf_counter() - t0) * 1000)})
+        return
+    out, meta = summarize(lines)
+    meta["passthrough"] = False
+    meta["ms"] = round((time.perf_counter() - t0) * 1000)
+    emit_and_record(data, out, meta)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as e:  # never lose the log because the summarizer broke
+        sys.stdout.write(f"[logsum failed: {e!r}; raw output follows]\n")
+        sys.stdout.flush()
+        sys.stdout.write(sys.stdin.read() if not sys.stdin.closed else "")</pre></figure>
+      <aside class="note"><strong>The masks are the whole game.</strong> Without the IP and PID masks, the same 800-line log fragments into hundreds of clusters and the summary is useless. If your logs carry request ids, trace ids or usernames, add a mask for each before anything else.</aside>
+    </div>
+  </section>
+
+  <section class="step" id="s3">
+    <div class="step-head"><div class="marker">3</div><h2>Expose it as a command and test it alone</h2></div>
+    <div class="step-body">
+      <p>The wrapper calls the venv's Python directly. Going through <code>uv run</code> on every tool call would add a dependency check to the hot path.</p>
+      <figure class="code"><figcaption><span>shell</span><button type="button" data-copy>Copy</button></figcaption><pre>cat &gt; ~/.local/bin/logsum &lt;&lt;'EOF'
+#!/usr/bin/env bash
+exec "$HOME/logsum/.venv/bin/python" "$HOME/logsum/logsum.py" "$@"
+EOF
+chmod +x ~/.local/bin/logsum</pre></figure>
+      <p>Make a realistic test log. This generator writes 800 lines with nine message shapes, including errors whose parameters vary, which is what a real service log looks like from the model's point of view.</p>
+      <figure class="code"><figcaption><span>shell</span><button type="button" data-copy>Copy</button></figcaption><pre>python3 - &lt;&lt;'EOF' &gt; /tmp/app.log
+import random
+random.seed(0)
+comps = ["nginx", "kube-proxy", "etcd", "scheduler", "api-server", "sshd", "systemd"]
+msgs = ["connection from {ip}:{port} accepted",
+        "request GET /api/v1/pods latency={ms}ms status=200",
+        "leader election: renewing lease for node-{n}",
+        "warning: disk usage on /var/lib at {pct}% (threshold 85%)",
+        "reconciling deployment default/web-{n}: 3 replicas ready",
+        "TLS handshake error from {ip}:{port}: EOF",
+        "started session {n} of user deploy",
+        "health check passed for backend-{n} in {ms}ms",
+        "ERROR failed to pull image registry.local/app:{n}: manifest unknown"]
+for i in range(800):
+    t = f"2026-09-06T10:{(i // 60) % 60:02d}:{i % 60:02d}Z"
+    m = random.choice(msgs).format(ip=f"10.0.{random.randint(0, 255)}.{random.randint(1, 254)}",
+        port=random.randint(1024, 65535), ms=random.randint(1, 900), n=random.randint(1, 40), pct=random.randint(60, 99))
+    print(f"{t} {random.choice(comps)}[{random.randint(100, 9999)}]: {m}")
+EOF
+
+printf 'a\nb\nc\n' | logsum          <span class="cm"># 3 lines: must come back unchanged</span>
+time logsum &lt; /tmp/app.log | head -20
+tail -n 1 ~/.local/share/logsum/stats.jsonl   <span class="cm"># the record the dashboard will read</span></pre></figure>
+      <p>Expected: the three-line input echoes back as is, the 800-line log returns in about 0.2 seconds as the header line, nine templates, and the tail, and the stats file has one JSON line with <code>"tok_in": 25827, "tok_out": 875</code>. If you have journal access (<code>adm</code> group), <code>journalctl -n 1000 --no-pager | logsum</code> is a good second test on real data.</p>
+    </div>
+  </section>
+
+  <section class="step" id="s4">
+    <div class="step-head"><div class="marker">4</div><h2>Install OpenCode and give it a model</h2></div>
+    <div class="step-body">
+      <figure class="code"><figcaption><span>shell</span><button type="button" data-copy>Copy</button></figcaption><pre>curl -fsSL https://opencode.ai/install | bash
+export PATH="$HOME/.opencode/bin:$PATH"     <span class="cm"># the installer adds this to your shell rc too</span>
+opencode --version</pre></figure>
+      <p>OpenCode needs a provider. Either run <code>opencode auth login</code> and follow the prompts, or export a key before starting it. Keys in a <code>.env</code> file in the project directory are loaded automatically.</p>
+      <figure class="code"><figcaption><span>shell</span><button type="button" data-copy>Copy</button></figcaption><pre>export ANTHROPIC_API_KEY=...        <span class="cm"># or OPENAI_API_KEY, OPENROUTER_API_KEY, ...</span>
+opencode models anthropic | head       <span class="cm"># lists ids like anthropic/claude-haiku-4-5</span></pre></figure>
+      <aside class="note warn"><strong>Organization-scoped Anthropic keys</strong> fail with "this request must include the anthropic-workspace-id header". Either use a workspace-scoped key, or add the header in <code>~/.config/opencode/opencode.json</code> under <code>provider.anthropic.options.headers</code>.</aside>
+    </div>
+  </section>
+
+  <section class="step" id="s5">
+    <div class="step-head"><div class="marker">5</div><h2>Add the plugin</h2></div>
+    <div class="step-body">
+      <p>OpenCode loads every file in <code>~/.config/opencode/plugins/</code> at startup. The plugin hooks <code>tool.execute.after</code>, which runs after a tool has finished and lets you rewrite the text handed back to the model. The command itself is never changed, so exit codes and side effects are exactly what the agent asked for.</p>
+      <p>It only acts when the bash command reads a log (journalctl, dmesg, docker or kubectl logs, or cat/tail/head on a <code>.log</code> file, <code>/var/log</code>, <code>syslog</code>, or a <code>logs/</code> directory) or when the <code>read</code> tool opens a <code>.log</code> file. Commands already piped into grep or awk are left alone, as is anything containing <code>nologsum</code>. It passes <code>LOGSUM_AGENT=opencode</code> and the command to the summarizer so the dashboard can attribute the savings. Any failure falls back to the raw output and writes a line to an audit log.</p>
+      <figure class="code"><figcaption><span>~/.config/opencode/plugins/logsum.js</span><button type="button" data-copy>Copy</button></figcaption><pre class="tall">// OpenCode plugin: summarize log-like tool output with Drain3 (logsum) before the model sees it.
+// Install: copy to ~/.config/opencode/plugins/logsum.js  (auto-loaded at startup).
+// Runs after the tool, so it never changes the command that executes; it only replaces the text
+// handed back to the model. Every inspected bash/read call is appended to the audit log
+// (decision + command) so the stats dashboard can show activity, not just summaries.
+import { execFileSync } from "node:child_process";
+import { appendFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
+
+const LOGSUM = join(homedir(), ".local/bin/logsum");
+const AUDIT = join(homedir(), ".config/opencode/logsum-plugin.log");
+const MIN_LINES = 40; // logsum passes anything shorter through unchanged; skip the spawn entirely
+
+const LOG_COMMANDS = [
+  /\bjournalctl\b/i, /\bdmesg\b/i, /\bdocker(?:\s+compose)?\s+logs\b/i, /\bkubectl\s+logs\b/i,
+  /\bpodman\s+logs\b/i, /\bpm2\s+logs\b/i, /\bheroku\s+logs\b/i, /\bgcloud\s+logging\s+read\b/i,
+  /\baws\s+logs\s+(?:tail|get-log-events|filter-log-events)\b/i, /\blast\s+-f\b/i,
+];
+const READERS = /\b(?:cat|tail|head|less|more|bat|zcat)\b/i;
+const LOG_PATHS = /(?:\.log\b|\.log\.\d+\b|\.out\b|\/var\/log\/|[\\/]logs?[\\/]|\bsyslog\b|\bmessages\b|\bjournal\b)/i;
+
+function decide(cmd) {
+  if (!cmd) return "inspect";
+  const isLog = LOG_COMMANDS.some((re) =&gt; re.test(cmd)) || (READERS.test(cmd) &amp;&amp; LOG_PATHS.test(cmd));
+  if (!isLog) return "inspect";                       // not a log read: nothing to do
+  if (/nologsum/i.test(cmd)) return "skip:optout";
+  // only skip when the whole pipeline ends in a filter (the agent already reduced it)
+  if (/\|\s*(?:grep|rg|awk|sed|jq|wc|sort|uniq|head|tail|cut)\b[^|;&amp;]*$/i.test(cmd)) return "skip:filtered";
+  return "rewrite";
+}
+
+function audit(decision, detail, cmd) {
+  try { appendFileSync(AUDIT, `${new Date().toISOString()}\topencode\t${decision}\t${detail}\t${String(cmd || "").replace(/\s+/g, " ").slice(0, 300)}\n`); } catch {}
+}
+
+function summarize(text, cmd) {
+  // agent name + base64 command go to the stats dashboard (logsum-stats)
+  const env = { ...process.env, LOGSUM_AGENT: "opencode", LOGSUM_CMD_B64: Buffer.from(String(cmd || ""), "utf8").toString("base64") };
+  return execFileSync(LOGSUM, { input: text, encoding: "utf8", timeout: 20000, maxBuffer: 64 * 1024 * 1024, env });
+}
+
+export const LogsumPlugin = async () =&gt; ({
+  "tool.execute.after": async (input, output) =&gt; {
+    try {
+      const text = output &amp;&amp; typeof output.output === "string" ? output.output : "";
+      let cmd = null, decision = null;
+      if (input.tool === "bash") {
+        cmd = input.args &amp;&amp; input.args.command;
+        decision = decide(cmd);
+      } else if (input.tool === "read") {
+        cmd = `read ${input.args &amp;&amp; input.args.filePath}`;
+        decision = LOG_PATHS.test(String(input.args &amp;&amp; input.args.filePath || "")) ? "rewrite" : "inspect";
+      } else {
+        return;
+      }
+      if (decision !== "rewrite") { audit(decision, input.tool, cmd); return; }
+      if (!text || text.split("\n").length &lt;= MIN_LINES) { audit("short", input.tool, cmd); return; }
+
+      // read tool prints "NNNNN| line"; strip the prefix so templates are about the log, not the numbering
+      const body = input.tool === "read" ? text.replace(/^\d+\|\s?/gm, "") : text;
+      const summary = summarize(body, cmd);
+      if (!summary || summary.length &gt;= body.length) { audit("nogain", input.tool, cmd); return; }
+      output.output = summary;
+      output.metadata = { ...(output.metadata || {}), logsum: true, originalBytes: text.length };
+      audit("rewrite", `${input.tool} ${text.length}-&gt;${summary.length}`, cmd);
+    } catch (err) {
+      // never break the tool: on any failure the model just gets the raw output
+      audit("error", err &amp;&amp; err.message, "");
+    }
+  },
+});</pre></figure>
+      <figure class="code"><figcaption><span>shell</span><button type="button" data-copy>Copy</button></figcaption><pre>mkdir -p ~/.config/opencode/plugins
+cp logsum.js ~/.config/opencode/plugins/logsum.js     <span class="cm"># from wherever you saved the file above</span></pre></figure>
+    </div>
+  </section>
+
+  <section class="step" id="s6">
+    <div class="step-head"><div class="marker">6</div><h2>Run the end-to-end test</h2></div>
+    <div class="step-body">
+      <p>Use a throwaway project so the agent cannot touch anything real, and run OpenCode headless with <code>--auto</code> so it does not stop to ask permission for the bash call.</p>
+      <figure class="code"><figcaption><span>shell</span><button type="button" data-copy>Copy</button></figcaption><pre>mkdir -p ~/oc-test &amp;&amp; cd ~/oc-test &amp;&amp; git init -q
+cp /tmp/app.log app.log
+: &gt; ~/.config/opencode/logsum-plugin.log
+
+opencode run --auto -m anthropic/claude-haiku-4-5 \
+  "Use the bash tool to run exactly this command: tail -n 300 app.log   Then answer in 3 short bullet points: which error/warning patterns appear and how often."
+
+cat ~/.config/opencode/logsum-plugin.log</pre></figure>
+      <p>Three things prove it worked. The audit log has one line for the bash call showing the size reduction. The answer quotes the template counts rather than guessing from raw lines. And the session export contains the summary header where the tool result used to be:</p>
+      <figure class="code"><figcaption><span>shell</span><button type="button" data-copy>Copy</button></figcaption><pre>SID=$(opencode session list | grep -oE 'ses_[A-Za-z0-9]+' | head -1)
+opencode export "$SID" | grep -oE '\[logsum\] [0-9]+ lines -&gt; [0-9]+ templates'</pre></figure>
+      <div class="tablewrap"><table>
+        <thead><tr><th>check</th><th>result from the verification run</th></tr></thead>
+        <tbody>
+          <tr><td>audit log</td><td><code>bash 25296-&gt;2237 tail -n 300 app.log</code> <span class="ok">✓</span></td></tr>
+          <tr><td>session export</td><td><code>[logsum] 300 lines -&gt; 9 templates</code> present <span class="ok">✓</span></td></tr>
+          <tr><td>model's answer</td><td>34 image-pull errors, 33 disk warnings ranging 60 to 99 percent, 30 TLS errors. Identical to the Drain3 counts. <span class="ok">✓</span></td></tr>
+          <tr><td>wall time</td><td class="num">14 s for the whole session</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section class="step" id="s7">
+    <div class="step-head"><div class="marker">7</div><h2>Put a statistics dashboard in the browser</h2></div>
+    <div class="step-body">
+      <p>The summarizer already writes one JSON line per call. The dashboard is a single Python file with no dependencies beyond the standard library: it serves a page at <code>http://localhost:8765</code> and a JSON endpoint at <code>/api/stats</code>, re-reads the stats file whenever it changes, and refreshes itself every 15 seconds.</p>
+      <p>What you see, top to bottom:</p>
+      <ul>
+        <li><strong>Five tiles.</strong> Calls (summarized versus passed through), tokens before, tokens after, percent saved, and the estimated cost saved at a price per million input tokens you can edit. The price is remembered in the browser.</li>
+        <li><strong>Tokens per day.</strong> One bar per day, blue for what the model actually read, orange stacked on top for what logsum removed. Hover a day for the numbers; the "Show as table" button gives the same data as text.</li>
+        <li><strong>Latest summary, how Drain3 saw it.</strong> The five most frequent templates of the most recent call, with counts and the wildcards highlighted. This is the quickest way to check that the masks fit your logs.</li>
+        <li><strong>By agent.</strong> One row per caller, so you can compare what OpenCode and any other agent saved.</li>
+        <li><strong>Recent calls.</strong> The last 60 calls with command, lines, tokens, percent saved and processing time. Each row expands to its templates.</li>
+      </ul>
+      <div class="shot">
+        <div class="eyebrow">What the tiles showed after the verification run (4 calls)</div>
+        <div class="tiles">
+          <div class="tile"><div class="l">Calls</div><div class="v">4</div></div>
+          <div class="tile"><div class="l">Tokens before</div><div class="v">55k</div></div>
+          <div class="tile"><div class="l">Tokens after</div><div class="v">3.5k</div></div>
+          <div class="tile hero"><div class="l">Saved</div><div class="v">94%</div></div>
+          <div class="tile hero"><div class="l">Est. cost saved</div><div class="v">$0.15</div></div>
+        </div>
+        <p style="color: var(--ink-3); font-size: 0.85rem;">By agent: opencode 300 → 28 lines, 9,653 → 875 tokens, 91 percent saved. Average 70 ms per summary, exact cl100k counts.</p>
+      </div>
+      <p>Save the server as <code>~/logsum/logsum_stats.py</code>:</p>
+      <details class="src"><summary>Show <code>logsum_stats.py</code> (server plus the dashboard page, about 170 lines)</summary>
+        <figure class="code"><figcaption><span>~/logsum/logsum_stats.py</span><button type="button" data-copy>Copy</button></figcaption><pre class="tall">"""logsum-stats: a dependency-free web dashboard for the logsum (Drain3) token savings.
+
+    logsum-stats --port 8765            # then open http://localhost:8765
+Reads ~/.local/share/logsum/stats.jsonl (or LOGSUM_STATS). Pure standard library.
+"""
+import argparse
+import json
+import os
+import time
+from collections import defaultdict
+from datetime import datetime, timedelta, timezone
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from urllib.parse import parse_qs, urlparse
+
+STATS_PATH = Path(os.environ.get("LOGSUM_STATS") or Path.home() / ".local/share/logsum/stats.jsonl")
+# Optional hook/plugin audit logs (tab-separated: ts, agent, decision, detail, command), colon-separated paths.
+INSPECT_LOGS = [Path(p) for p in os.environ.get("LOGSUM_INSPECT_LOGS", "").split(":") if p]
+_cache = {"mtime": None, "rows": []}
+_icache: dict[str, dict] = {}
+
+
+def load_inspections() -&gt; list[dict]:
+    """Every shell command the hooks looked at, whether or not it was summarized."""
+    rows: list[dict] = []
+    for p in INSPECT_LOGS:
+        try:
+            mtime = p.stat().st_mtime
+        except FileNotFoundError:
+            continue
+        c = _icache.get(str(p))
+        if not c or c["mtime"] != mtime:
+            parsed = []
+            with p.open(encoding="utf-8", errors="replace") as f:
+                for line in f:
+                    parts = line.rstrip("\n").split("\t")
+                    if len(parts) &gt;= 3:
+                        parsed.append({"ts": parts[0], "agent": parts[1], "decision": parts[2],
+                                       "detail": parts[3] if len(parts) &gt; 3 else "", "cmd": parts[4] if len(parts) &gt; 4 else ""})
+            c = {"mtime": mtime, "rows": parsed}
+            _icache[str(p)] = c
+        rows += c["rows"]
+    return rows
+
+
+def load_rows() -&gt; list[dict]:
+    try:
+        mtime = STATS_PATH.stat().st_mtime
+    except FileNotFoundError:
+        return []
+    if _cache["mtime"] != mtime:
+        rows = []
+        with STATS_PATH.open(encoding="utf-8") as f:
+            for line in f:
+                try:
+                    rows.append(json.loads(line))
+                except json.JSONDecodeError:
+                    pass
+        _cache.update(mtime=mtime, rows=rows)
+    return _cache["rows"]
+
+
+def aggregate(days: int) -&gt; dict:
+    rows = load_rows()
+    since = datetime.now() - timedelta(days=days)
+    keep = [r for r in rows if datetime.strptime(r["ts"][:19], "%Y-%m-%dT%H:%M:%S") &gt;= since]
+    summarized = [r for r in keep if not r.get("passthrough")]
+    tot = lambda rs, k: sum(r.get(k, 0) for r in rs)  # noqa: E731
+    by_day: dict[str, dict] = defaultdict(lambda: {"calls": 0, "tok_in": 0, "tok_out": 0})
+    by_agent: dict[str, dict] = defaultdict(lambda: {"calls": 0, "passthrough": 0, "tok_in": 0, "tok_out": 0, "lines_in": 0, "lines_out": 0})
+    for r in keep:
+        d = r["ts"][:10]
+        a = by_agent[r.get("agent") or "unknown"]
+        a["calls"] += 1
+        if r.get("passthrough"):
+            a["passthrough"] += 1
+            continue
+        by_day[d]["calls"] += 1
+        by_day[d]["tok_in"] += r.get("tok_in", 0)
+        by_day[d]["tok_out"] += r.get("tok_out", 0)
+        for k in ("tok_in", "tok_out", "lines_in", "lines_out"):
+            a[k] += r.get(k, 0)
+    day_list = []
+    for i in range(days - 1, -1, -1):
+        d = (datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d")
+        day_list.append({"day": d, **by_day.get(d, {"calls": 0, "tok_in": 0, "tok_out": 0})})
+    recent = sorted(keep, key=lambda r: r["ts"], reverse=True)[:60]
+    latest = next((r for r in recent if not r.get("passthrough")), None)
+
+    # hook activity: inspected vs rewritten, per agent (timestamps in the audit logs are UTC ISO)
+    since_utc = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=days)
+    insp = [r for r in load_inspections()
+            if r["ts"][:19].replace("T", " ") &gt;= since_utc.strftime("%Y-%m-%d %H:%M:%S")]
+    insp_by_agent: dict[str, dict] = defaultdict(lambda: {"inspected": 0, "rewritten": 0, "skipped": 0})
+    for r in insp:
+        a = insp_by_agent[r["agent"]]
+        a["inspected"] += 1
+        if r["decision"] == "rewrite":
+            a["rewritten"] += 1
+        elif r["decision"].startswith("skip"):
+            a["skipped"] += 1
+    agents_out = []
+    names = set(by_agent) | set(insp_by_agent)
+    for name in names:
+        s = by_agent.get(name, {"calls": 0, "passthrough": 0, "tok_in": 0, "tok_out": 0, "lines_in": 0, "lines_out": 0})
+        agents_out.append({"agent": name, **s, **insp_by_agent.get(name, {"inspected": 0, "rewritten": 0, "skipped": 0})})
+    agents_out.sort(key=lambda x: (-x["tok_in"], -x["inspected"]))
+    recent_insp = sorted(insp, key=lambda r: r["ts"], reverse=True)[:40]
+    return {
+        "inspect": {"total": len(insp), "rewritten": sum(1 for r in insp if r["decision"] == "rewrite"),
+                    "skipped": sum(1 for r in insp if r["decision"].startswith("skip")),
+                    "sources": [str(p) for p in INSPECT_LOGS], "recent": recent_insp},
+        "generated": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "stats_file": str(STATS_PATH),
+        "days": days,
+        "totals": {
+            "calls": len(keep), "summarized": len(summarized), "passthrough": len(keep) - len(summarized),
+            "tok_in": tot(summarized, "tok_in"), "tok_out": tot(summarized, "tok_out"),
+            "lines_in": tot(summarized, "lines_in"), "lines_out": tot(summarized, "lines_out"),
+            "ms_avg": round(tot(summarized, "ms") / len(summarized)) if summarized else 0,
+            "exact_tokens": all(r.get("tok_method") == "tiktoken" for r in summarized) if summarized else True,
+        },
+        "by_day": day_list,
+        "by_agent": agents_out,
+        "recent": recent,
+        "latest": latest,
+    }
+
+
+PAGE = r"""&lt;!doctype html&gt;&lt;html lang="en"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;meta name="viewport" content="width=device-width,initial-scale=1"&gt;
+&lt;title&gt;logsum stats&lt;/title&gt;
+&lt;style&gt;
+:root{color-scheme:light;--page:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--grid:#e1e0d9;--axis:#c3c2b7;--ring:rgba(11,11,11,.10);--s1:#2a78d6;--s2:#eb6834;--good:#006300;--wild:#8a4b00}
+@media (prefers-color-scheme:dark){:root{color-scheme:dark;--page:#0d0d0d;--surface:#1a1a19;--ink:#fff;--ink2:#c3c2b7;--muted:#898781;--grid:#2c2c2a;--axis:#383835;--ring:rgba(255,255,255,.10);--s1:#3987e5;--s2:#d95926;--good:#0ca30c;--wild:#e0a24a}}
+*{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1080px;margin:0 auto;padding:28px 20px 60px;display:grid;gap:22px}
+h1{font-size:1.35rem;margin:0;font-weight:600}h2{font-size:1rem;margin:0;font-weight:600;color:var(--ink)}
+.sub{color:var(--ink2);font-size:.9rem}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--ring);border-radius:6px;padding:12px 14px;display:grid;gap:2px}
+.tile .v{font-size:1.6rem;font-weight:600;letter-spacing:-.01em}.tile .l{font-size:.78rem;color:var(--muted);letter-spacing:.03em;text-transform:uppercase}
+.tile .d{font-size:.8rem;color:var(--ink2)}.hero .v{color:var(--good)}
+.panel{background:var(--surface);border:1px solid var(--ring);border-radius:6px;padding:14px 16px;display:grid;gap:10px}
+.legend{display:flex;gap:16px;font-size:.85rem;color:var(--ink2)}.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+svg{width:100%;height:auto;display:block}
+.tip{position:fixed;pointer-events:none;background:var(--surface);border:1px solid var(--ring);border-radius:6px;padding:8px 10px;font-size:.82rem;box-shadow:0 4px 16px rgba(0,0,0,.15);display:none;color:var(--ink)}
+table{border-collapse:collapse;width:100%;font-size:.86rem;font-variant-numeric:tabular-nums}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--grid);vertical-align:top}
+th{color:var(--muted);font-weight:500;font-size:.75rem;letter-spacing:.04em;text-transform:uppercase}td.n,th.n{text-align:right}tr:last-child td{border-bottom:0}
+.wrap{overflow-x:auto}code{font:.82rem/1.4 ui-monospace,"Cascadia Mono",Consolas,monospace}
+.tpl{display:grid;gap:4px}.tpl div{display:grid;grid-template-columns:64px 1fr;gap:8px;font:.82rem ui-monospace,Consolas,monospace}.tpl b{text-align:right;font-weight:500;color:var(--ink2)}.w{color:var(--wild)}
+select,input,button{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--axis);border-radius:4px;padding:3px 8px}input{width:80px}
+button{cursor:pointer}button:hover{border-color:var(--s1)}
+.muted{color:var(--muted)}.empty{padding:24px;text-align:center;color:var(--muted)}
+details summary{cursor:pointer;color:var(--ink2)}
+@media (prefers-reduced-motion:no-preference){.bar{transition:opacity .15s}}
+&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;main&gt;
+&lt;div class="row" style="justify-content:space-between"&gt;
+  &lt;div&gt;&lt;h1&gt;logsum · Drain3 token savings&lt;/h1&gt;&lt;div class="sub" id="meta"&gt;loading…&lt;/div&gt;&lt;/div&gt;
+  &lt;div class="row"&gt;&lt;label&gt;Range &lt;select id="days"&gt;&lt;option value="7"&gt;7 days&lt;/option&gt;&lt;option value="14" selected&gt;14 days&lt;/option&gt;&lt;option value="30"&gt;30 days&lt;/option&gt;&lt;option value="90"&gt;90 days&lt;/option&gt;&lt;/select&gt;&lt;/label&gt;
+  &lt;label&gt;Price $/Mtok &lt;input id="price" type="number" step="0.25" min="0" value="3"&gt;&lt;/label&gt;&lt;button id="refresh" type="button"&gt;Refresh&lt;/button&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="tiles" id="tiles"&gt;&lt;/div&gt;
+&lt;section class="panel"&gt;&lt;div class="row" style="justify-content:space-between"&gt;&lt;h2&gt;Tokens per day&lt;/h2&gt;&lt;div class="row"&gt;&lt;div class="legend"&gt;&lt;span&gt;&lt;i style="background:var(--s1)"&gt;&lt;/i&gt;read by the model&lt;/span&gt;&lt;span&gt;&lt;i style="background:var(--s2)"&gt;&lt;/i&gt;saved by logsum&lt;/span&gt;&lt;/div&gt;&lt;button id="tableToggle" type="button"&gt;Show as table&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;div id="chart"&gt;&lt;/div&gt;&lt;div class="wrap" id="daytable" hidden&gt;&lt;/div&gt;&lt;/section&gt;
+&lt;section class="panel"&gt;&lt;h2&gt;Latest summary, how Drain3 saw it&lt;/h2&gt;&lt;div id="latest" class="tpl"&gt;&lt;/div&gt;&lt;/section&gt;
+&lt;section class="panel"&gt;&lt;h2&gt;By agent&lt;/h2&gt;&lt;div class="wrap" id="agents"&gt;&lt;/div&gt;&lt;/section&gt;
+&lt;section class="panel"&gt;&lt;h2&gt;Recent summaries&lt;/h2&gt;&lt;div class="wrap" id="recent"&gt;&lt;/div&gt;&lt;/section&gt;
+&lt;section class="panel"&gt;&lt;h2&gt;Recent shell commands the hooks looked at&lt;/h2&gt;&lt;div class="sub"&gt;Every Bash/PowerShell call passes through the hook. &lt;code&gt;rewrite&lt;/code&gt; = piped through Drain3, &lt;code&gt;inspect&lt;/code&gt; = not a log read, &lt;code&gt;skip:*&lt;/code&gt; = a log read left alone by rule (follow mode, already filtered, redirect, opt-out).&lt;/div&gt;&lt;div class="wrap" id="inspections"&gt;&lt;/div&gt;&lt;/section&gt;
+&lt;div class="tip" id="tip"&gt;&lt;/div&gt;
+&lt;/main&gt;
+&lt;script&gt;
+const $=s=&gt;document.querySelector(s);const fmt=n=&gt;n.toLocaleString();const k=n=&gt;n&gt;=1e6?(n/1e6).toFixed(1)+'M':n&gt;=1e3?(n/1e3).toFixed(n&gt;=1e4?0:1)+'k':String(n);
+const esc=s=&gt;String(s).replace(/[&amp;&lt;&gt;]/g,c=&gt;({'&amp;':'&amp;amp;','&lt;':'&amp;lt;','&gt;':'&amp;gt;'}[c]));
+const wild=s=&gt;esc(s).replace(/&amp;lt;([^&amp;]*?)&amp;gt;/g,'&lt;span class="w"&gt;&amp;lt;$1&amp;gt;&lt;/span&gt;');
+try{const p=localStorage.getItem('logsum.price');if(p)$('#price').value=p;const d=localStorage.getItem('logsum.days');if(d)$('#days').value=d;}catch{}
+let data=null;
+async function load(){const days=$('#days').value;const r=await fetch('/api/stats?days='+days);data=await r.json();render();}
+function render(){const t=data.totals,price=parseFloat($('#price').value)||0;const saved=t.tok_in-t.tok_out;const pct=t.tok_in?saved/t.tok_in:0;
+$('#meta').textContent=`${data.stats_file} · updated ${data.generated} · ${t.exact_tokens?'exact cl100k counts':'estimated counts (install tiktoken for exact)'} · avg ${t.ms_avg} ms per summary`;
+const ins=data.inspect||{total:0,rewritten:0,skipped:0};
+$('#tiles').innerHTML=[
+ ['Shell commands seen','',fmt(ins.total),`${fmt(ins.rewritten)} were log reads · ${fmt(ins.skipped)} skipped by rule`],
+ ['Summaries','',fmt(t.summarized),`${fmt(t.passthrough)} short reads passed through`],
+ ['Tokens before','',k(t.tok_in),`${fmt(t.lines_in)} log lines`],
+ ['Tokens after','',k(t.tok_out),`${fmt(t.lines_out)} lines shown to the model`],
+ ['Saved','hero',`${(pct*100).toFixed(0)}%`,`${fmt(saved)} tokens not sent`],
+ ['Est. cost saved','hero','$'+(saved/1e6*price).toFixed(2),`at $${price}/Mtok input`]
+].map(([l,c,v,d])=&gt;`&lt;div class="tile ${c}"&gt;&lt;div class="l"&gt;${l}&lt;/div&gt;&lt;div class="v"&gt;${v}&lt;/div&gt;&lt;div class="d"&gt;${d}&lt;/div&gt;&lt;/div&gt;`).join('');
+chart();latest();agents();recent();}
+function chart(){const rows=data.by_day,W=900,H=260,L=48,R=12,T=18,B=34,iw=W-L-R,ih=H-T-B;const max=Math.max(1,...rows.map(r=&gt;r.tok_in));
+const nice=[1,2,5,10,20,50,100,200,500,1e3,2e3,5e3,1e4,2e4,5e4,1e5,2e5,5e5,1e6].find(s=&gt;max/s&lt;=5)||1e6;const top=Math.ceil(max/nice)*nice;const y=v=&gt;T+ih-(v/top)*ih;
+let s=`&lt;svg viewBox="0 0 ${W} ${H}" role="img" aria-label="tokens per day"&gt;`;
+for(let v=0;v&lt;=top;v+=nice){s+=`&lt;line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="${v?'var(--grid)':'var(--axis)'}" stroke-width="1"/&gt;&lt;text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)"&gt;${k(v)}&lt;/text&gt;`;}
+const n=rows.length,slot=iw/n,bw=Math.max(6,Math.min(36,slot*0.6));const maxI=rows.reduce((m,r,i)=&gt;r.tok_in&gt;rows[m].tok_in?i:m,0);
+rows.forEach((r,i)=&gt;{const x=L+slot*i+(slot-bw)/2;const yo=y(r.tok_out),yi=y(r.tok_in);const svd=r.tok_in-r.tok_out;
+ if(r.tok_out&gt;0)s+=`&lt;rect class="bar" x="${x}" y="${yo}" width="${bw}" height="${T+ih-yo}" fill="var(--s1)"/&gt;`;
+ if(svd&gt;0){const h=Math.max(0,(yo-2)-yi);s+=`&lt;rect class="bar" x="${x}" y="${yi}" width="${bw}" height="${h}" rx="3" fill="var(--s2)"/&gt;`;}
+ s+=`&lt;rect x="${L+slot*i}" y="${T}" width="${slot}" height="${ih}" fill="transparent" data-i="${i}"/&gt;`;
+ if(r.tok_in&amp;&amp;(i===maxI||i===n-1))s+=`&lt;text x="${x+bw/2}" y="${yi-5}" text-anchor="middle" font-size="11" fill="var(--ink2)"&gt;${k(r.tok_in)}&lt;/text&gt;`;
+ const lab=n&lt;=14||i%Math.ceil(n/12)===0?r.day.slice(5):'';if(lab)s+=`&lt;text x="${x+bw/2}" y="${H-12}" text-anchor="middle" font-size="11" fill="var(--muted)"&gt;${lab}&lt;/text&gt;`;});
+s+='&lt;/svg&gt;';$('#chart').innerHTML=s;const tip=$('#tip');
+$('#chart').querySelectorAll('rect[data-i]').forEach(el=&gt;{el.addEventListener('mousemove',e=&gt;{const r=rows[+el.dataset.i];const sv=r.tok_in-r.tok_out;tip.style.display='block';tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY+14)+'px';
+ tip.innerHTML=`&lt;b&gt;${r.day}&lt;/b&gt;&lt;br&gt;${fmt(r.calls)} summaries&lt;br&gt;before ${fmt(r.tok_in)} · after ${fmt(r.tok_out)}&lt;br&gt;saved ${fmt(sv)} (${r.tok_in?Math.round(sv/r.tok_in*100):0}%)`;});el.addEventListener('mouseleave',()=&gt;tip.style.display='none');});
+$('#daytable').innerHTML=`&lt;table&gt;&lt;tr&gt;&lt;th&gt;day&lt;/th&gt;&lt;th class="n"&gt;summaries&lt;/th&gt;&lt;th class="n"&gt;before&lt;/th&gt;&lt;th class="n"&gt;after&lt;/th&gt;&lt;th class="n"&gt;saved&lt;/th&gt;&lt;/tr&gt;${rows.filter(r=&gt;r.calls).map(r=&gt;`&lt;tr&gt;&lt;td&gt;${r.day}&lt;/td&gt;&lt;td class="n"&gt;${r.calls}&lt;/td&gt;&lt;td class="n"&gt;${fmt(r.tok_in)}&lt;/td&gt;&lt;td class="n"&gt;${fmt(r.tok_out)}&lt;/td&gt;&lt;td class="n"&gt;${fmt(r.tok_in-r.tok_out)}&lt;/td&gt;&lt;/tr&gt;`).join('')||'&lt;tr&gt;&lt;td colspan="5" class="muted"&gt;no summaries in range&lt;/td&gt;&lt;/tr&gt;'}&lt;/table&gt;`;}
+function latest(){const r=data.latest;if(!r){$('#latest').innerHTML='&lt;div class="empty"&gt;No summaries yet. Read a log of more than 40 lines through an agent and it will appear here.&lt;/div&gt;';return;}
+$('#latest').innerHTML=`&lt;div class="sub"&gt;${esc(r.ts)} · ${esc(r.agent)} · &lt;code&gt;${esc(r.cmd||'(command not recorded)')}&lt;/code&gt;&lt;br&gt;${fmt(r.lines_in)} lines → ${r.templates} templates, ${fmt(r.rare_lines)} rare lines kept · ${fmt(r.tok_in)} → ${fmt(r.tok_out)} tokens in ${r.ms} ms&lt;/div&gt;`+(r.top||[]).map(([c,t])=&gt;`&lt;div&gt;&lt;b&gt;${fmt(c)}×&lt;/b&gt;&lt;span&gt;${wild(t)}&lt;/span&gt;&lt;/div&gt;`).join('');}
+function agents(){const a=data.by_agent;if(!a.length){$('#agents').innerHTML='&lt;div class="empty"&gt;no calls in range&lt;/div&gt;';return;}
+$('#agents').innerHTML=`&lt;table&gt;&lt;tr&gt;&lt;th&gt;agent&lt;/th&gt;&lt;th class="n"&gt;commands seen&lt;/th&gt;&lt;th class="n"&gt;log reads&lt;/th&gt;&lt;th class="n"&gt;summaries&lt;/th&gt;&lt;th class="n"&gt;passed through&lt;/th&gt;&lt;th class="n"&gt;lines in → out&lt;/th&gt;&lt;th class="n"&gt;tokens before&lt;/th&gt;&lt;th class="n"&gt;after&lt;/th&gt;&lt;th class="n"&gt;saved&lt;/th&gt;&lt;/tr&gt;${a.map(x=&gt;`&lt;tr&gt;&lt;td&gt;${esc(x.agent)}&lt;/td&gt;&lt;td class="n"&gt;${fmt(x.inspected||0)}&lt;/td&gt;&lt;td class="n"&gt;${fmt(x.rewritten||0)}&lt;/td&gt;&lt;td class="n"&gt;${x.calls-x.passthrough}&lt;/td&gt;&lt;td class="n"&gt;${x.passthrough}&lt;/td&gt;&lt;td class="n"&gt;${fmt(x.lines_in)} → ${fmt(x.lines_out)}&lt;/td&gt;&lt;td class="n"&gt;${fmt(x.tok_in)}&lt;/td&gt;&lt;td class="n"&gt;${fmt(x.tok_out)}&lt;/td&gt;&lt;td class="n"&gt;${x.tok_in?Math.round((1-x.tok_out/x.tok_in)*100):0}%&lt;/td&gt;&lt;/tr&gt;`).join('')}&lt;/table&gt;`;
+const ri=(data.inspect&amp;&amp;data.inspect.recent)||[];$('#inspections').innerHTML=ri.length?`&lt;table&gt;&lt;tr&gt;&lt;th&gt;time (UTC)&lt;/th&gt;&lt;th&gt;agent&lt;/th&gt;&lt;th&gt;decision&lt;/th&gt;&lt;th&gt;command&lt;/th&gt;&lt;/tr&gt;${ri.map(r=&gt;`&lt;tr&gt;&lt;td&gt;${esc(r.ts.slice(0,19).replace('T',' '))}&lt;/td&gt;&lt;td&gt;${esc(r.agent)}&lt;/td&gt;&lt;td&gt;${esc(r.decision)}&lt;/td&gt;&lt;td&gt;&lt;code&gt;${esc(r.cmd.slice(0,110))}&lt;/code&gt;&lt;/td&gt;&lt;/tr&gt;`).join('')}&lt;/table&gt;`:'&lt;div class="empty"&gt;no hook activity recorded (set LOGSUM_INSPECT_LOGS for the service)&lt;/div&gt;';}
+function recent(){const rs=data.recent;if(!rs.length){$('#recent').innerHTML='&lt;div class="empty"&gt;nothing recorded yet&lt;/div&gt;';return;}
+$('#recent').innerHTML=`&lt;table&gt;&lt;tr&gt;&lt;th&gt;time&lt;/th&gt;&lt;th&gt;agent&lt;/th&gt;&lt;th&gt;command&lt;/th&gt;&lt;th class="n"&gt;lines&lt;/th&gt;&lt;th class="n"&gt;tokens&lt;/th&gt;&lt;th class="n"&gt;saved&lt;/th&gt;&lt;th class="n"&gt;ms&lt;/th&gt;&lt;/tr&gt;${rs.map(r=&gt;{const p=r.passthrough;return `&lt;tr&gt;&lt;td&gt;${esc(r.ts.slice(0,19).replace('T',' '))}&lt;/td&gt;&lt;td&gt;${esc(r.agent)}&lt;/td&gt;&lt;td&gt;&lt;code&gt;${esc((r.cmd||'').slice(0,80))}&lt;/code&gt;${p?' &lt;span class="muted"&gt;(passthrough)&lt;/span&gt;':(r.top&amp;&amp;r.top.length?`&lt;details&gt;&lt;summary&gt;${r.templates} templates&lt;/summary&gt;&lt;div class="tpl"&gt;${r.top.map(([c,t])=&gt;`&lt;div&gt;&lt;b&gt;${fmt(c)}×&lt;/b&gt;&lt;span&gt;${wild(t)}&lt;/span&gt;&lt;/div&gt;`).join('')}&lt;/div&gt;&lt;/details&gt;`:'')}&lt;/td&gt;&lt;td class="n"&gt;${fmt(r.lines_in)} → ${fmt(r.lines_out)}&lt;/td&gt;&lt;td class="n"&gt;${fmt(r.tok_in)} → ${fmt(r.tok_out)}&lt;/td&gt;&lt;td class="n"&gt;${p?'—':Math.round((1-r.tok_out/Math.max(1,r.tok_in))*100)+'%'}&lt;/td&gt;&lt;td class="n"&gt;${r.ms??''}&lt;/td&gt;&lt;/tr&gt;`}).join('')}&lt;/table&gt;`;}
+$('#days').addEventListener('change',()=&gt;{try{localStorage.setItem('logsum.days',$('#days').value)}catch{}load();});
+$('#price').addEventListener('input',()=&gt;{try{localStorage.setItem('logsum.price',$('#price').value)}catch{}if(data)render();});
+$('#refresh').addEventListener('click',load);
+$('#tableToggle').addEventListener('click',()=&gt;{const t=$('#daytable');t.hidden=!t.hidden;$('#chart').hidden=!t.hidden;$('#tableToggle').textContent=t.hidden?'Show as table':'Show as chart';});
+load();setInterval(load,15000);
+&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;"""
+
+
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        u = urlparse(self.path)
+        if u.path == "/api/stats":
+            days = max(1, min(365, int(parse_qs(u.query).get("days", ["14"])[0])))
+            body = json.dumps(aggregate(days)).encode()
+            self._send(200, "application/json; charset=utf-8", body)
+        elif u.path in ("/", "/index.html"):
+            self._send(200, "text/html; charset=utf-8", PAGE.encode())
+        else:
+            self._send(404, "text/plain", b"not found")
+
+    def _send(self, code, ctype, body):
+        self.send_response(code)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, *a):  # quiet
+        pass
+
+
+def main():
+    ap = argparse.ArgumentParser(description="logsum statistics dashboard")
+    ap.add_argument("--host", default="127.0.0.1")
+    ap.add_argument("--port", type=int, default=8765)
+    a = ap.parse_args()
+    srv = ThreadingHTTPServer((a.host, a.port), Handler)
+    print(f"logsum-stats: http://{a.host}:{a.port}  (reading {STATS_PATH})", flush=True)
+    srv.serve_forever()
+
+
+if __name__ == "__main__":
+    main()</pre></figure>
+      </details>
+      <p>Then give it a wrapper and run it as a user service, so it starts with the machine and restarts if it dies. No sudo is needed for <code>systemctl --user</code>.</p>
+      <figure class="code"><figcaption><span>shell</span><button type="button" data-copy>Copy</button></figcaption><pre>cat &gt; ~/.local/bin/logsum-stats &lt;&lt;'EOF'
+#!/usr/bin/env bash
+exec "$HOME/logsum/.venv/bin/python" "$HOME/logsum/logsum_stats.py" "$@"
+EOF
+chmod +x ~/.local/bin/logsum-stats
+
+mkdir -p ~/.config/systemd/user
+cat &gt; ~/.config/systemd/user/logsum-stats.service &lt;&lt;'EOF'
+[Unit]
+Description=logsum (Drain3) token-savings dashboard
+After=network.target
+
+[Service]
+ExecStart=%h/.local/bin/logsum-stats --host 127.0.0.1 --port 8765
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+EOF
+systemctl --user daemon-reload
+systemctl --user enable --now logsum-stats.service
+loginctl enable-linger "$USER"      <span class="cm"># keep it running when you are not logged in</span>
+
+curl -s 'http://127.0.0.1:8765/api/stats?days=7' | python3 -m json.tool | head -20</pre></figure>
+      <p>Open <a href="http://localhost:8765">http://localhost:8765</a> in a browser. If the machine is remote, keep the server on <code>127.0.0.1</code> and tunnel: <code>ssh -L 8765:127.0.0.1:8765 user@host</code>. Binding to <code>0.0.0.0</code> exposes your command history to the network, so only do that behind a firewall you trust.</p>
+      <aside class="note"><strong>Reading the stats file directly.</strong> It is plain JSON lines, so <code>jq</code> works too: <code>jq -s 'map(select(.passthrough|not)) | {calls: length, before: map(.tok_in)|add, after: map(.tok_out)|add}' ~/.local/share/logsum/stats.jsonl</code>. To start over, delete the file; the dashboard shows an empty state until the next call.</aside>
+    </div>
+  </section>
+
+  <section class="step" id="tuning">
+    <h2>Tuning and limits</h2>
+    <ul>
+      <li><strong>Thresholds.</strong> <code>PASSTHROUGH_LINES</code> decides when summarizing starts, <code>RARE_MAX</code> how rare a template must be to stay verbatim, <code>TAIL_LINES</code> how much recency to keep. The defaults were chosen so a 300-line read costs about 30 lines.</li>
+      <li><strong>Opting out.</strong> Any command containing <code>nologsum</code> (for example <code>tail -n 500 app.log # nologsum</code>) is passed through, and the summary header tells the model so. Commands that already filter with grep, awk or jq are never touched. Set <code>LOGSUM_NOSTATS=1</code> to stop recording.</li>
+      <li><strong>Multi-line records.</strong> Drain is line-based. Java or Python stack traces become one template per frame. Group them into one record per exception before mining, or the summary hides the trace.</li>
+      <li><strong>New masks.</strong> Add a regex and a name to <code>MASKS</code>; earlier entries win, so put the more specific pattern first, as with <code>IP:PORT</code> before <code>IP</code>. The "Latest summary" panel on the dashboard shows immediately whether a new mask took.</li>
+      <li><strong>Both files are one system.</strong> Edit <code>~/logsum/logsum.py</code> and every agent that calls <code>logsum</code> picks up the change on its next tool call. No restart is needed.</li>
+      <li><strong>Other agents.</strong> Anything that can run a shell pipeline can use it. Claude Code, for instance, cannot modify tool output after the fact, so there the same summarizer is wired as a PreToolUse hook that rewrites the command to <code>… | env LOGSUM_AGENT=claude-code logsum</code>. The dashboard then shows both agents side by side.</li>
+    </ul>
+  </section>
+
+  <section class="step" id="remove">
+    <h2>Removing it</h2>
+    <figure class="code"><figcaption><span>shell</span><button type="button" data-copy>Copy</button></figcaption><pre>systemctl --user disable --now logsum-stats.service
+rm ~/.config/systemd/user/logsum-stats.service ~/.local/bin/logsum-stats
+rm ~/.config/opencode/plugins/logsum.js ~/.config/opencode/logsum-plugin.log
+rm ~/.local/bin/logsum
+rm -rf ~/logsum ~/.local/share/logsum     <span class="cm"># the uv project and the stats file</span></pre></figure>
+    <p>OpenCode itself is removed with <code>opencode uninstall</code>.</p>
+  </section>
+
+  <footer>Verified 2026-09-06 with Drain3 0.9.11, OpenCode 1.18.29, uv 0.12, Python 3.12, tiktoken 0.14. Token counts use the cl100k tokenizer as a stand-in for the model's own.</footer>
+</main>
+
+<script>
+  document.querySelectorAll('figure.code button[data-copy]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var pre = btn.closest('figure').querySelector('pre');
+      var text = pre.innerText;
+      function done(ok) { btn.textContent = ok ? 'Copied' : 'Select and copy'; setTimeout(function () { btn.textContent = 'Copy'; }, 1600); }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+      } else { done(false); }
+    });
+  });
+</script>

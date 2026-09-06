@@ -1,0 +1,12 @@
+[Unit]
+Description=logsum (Drain3) token-savings dashboard
+After=network.target
+
+[Service]
+# Audit logs of the agent hooks (colon-separated). scripts/install.sh fills these in.
+Environment=LOGSUM_INSPECT_LOGS=%h/.config/opencode/logsum-plugin.log
+ExecStart=%h/.local/bin/logsum-stats --host 127.0.0.1 --port 8765
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

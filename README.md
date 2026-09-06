@@ -1,0 +1,115 @@
+# drain3-deployment
+
+Cut the tokens a coding agent spends on log output. `logsum` runs the
+[Drain3](https://github.com/logpai/Drain3) template miner over any log a tool
+returns and hands the model templates with counts instead of the raw lines.
+Hooks for **OpenCode** and **Claude Code** wire it in transparently, and a small
+dashboard shows what it saved.
+
+Measured on an 800-line service log: 800 lines become 28, 25,827 tokens become
+875, in about 0.2 s on a CPU. Rare lines and the tail of the log stay verbatim,
+so nothing an agent needs to act on is lost.
+
+```
+2026-09-06T10:00:23Z scheduler[6815]: TLS handshake error from 10.0.128.31:40135: EOF
+2026-09-06T10:00:28Z sshd[9408]: TLS handshake error from 10.0.81.62:15644: EOF
+... 85 more
+```
+becomes
+```
+   87x  <TS> <*> TLS handshake error from <IP:PORT>: EOF   (lines 24-797)
+         time 2026-09-06T10:00:23Z .. 2026-09-06T10:13:16Z
+         IP:PORT: 87 distinct, e.g. 10.0.1.10:4117, 10.0.10.12:13612, ...
+```
+
+## Layout
+
+| path | what |
+|---|---|
+| `logsum/logsum.py` | the summarizer: stdin log in, Drain3 summary out; records each call to `~/.local/share/logsum/stats.jsonl` |
+| `logsum/logsum_stats.py` | dashboard server (stdlib only): `http://localhost:8765`, JSON at `/api/stats` |
+| `logsum/logsum-stats.service` | systemd user unit for the dashboard |
+| `opencode/logsum.js` | OpenCode plugin (`tool.execute.after`): replaces log output with the summary |
+| `claude-code/logsum-hook.js` | Claude Code PreToolUse hook for Windows: pipes log commands through `logsum` in WSL2 |
+| `claude-code/install.ps1` | installs the hook and merges it into `~/.claude/settings.json` |
+| `scripts/install.sh` | Ubuntu / WSL2 installer: uv env, wrappers, dashboard service, self-test |
+| `scripts/install-opencode-plugin.sh`, `scripts/test-opencode.sh` | plugin install and a headless end-to-end test |
+| `docs/` | the full guide (`drain3-opencode-guide.html`, built from `guide_template.html` by `build_guide.py`) |
+| `benchmarks/` | how this was chosen: LLMLingua-2 on GPU, RTK vs Tamp on real tool outputs, Drain3 vs line dedup |
+
+## Install on Ubuntu or WSL2
+
+```bash
+git clone git@github.com:magiccpp/drain3-deployment.git
+cd drain3-deployment
+scripts/install.sh                      # uv + drain3 + wrappers + dashboard service, no sudo
+scripts/install-opencode-plugin.sh      # OpenCode
+```
+
+Then open <http://localhost:8765>. On WSL2, pass `--bind 0.0.0.0` to `install.sh`
+so a Windows browser can reach it, and `--claude-hook-log /mnt/c/Users/<you>/.claude/hooks/logsum-hook.log`
+so Claude Code activity shows up too.
+
+### Claude Code on Windows (summarizer in WSL2)
+
+```powershell
+cd claude-code
+.\install.ps1 -Distro Ubuntu-24.04     # copies the hook, writes its config, merges settings.json
+```
+
+Claude Code cannot modify tool output after the fact, so the hook rewrites
+log-reading commands to `... | wsl.exe -d <distro> -- logsum`. It only touches
+commands that read logs (journalctl, dmesg, docker/kubectl logs, cat/tail/Get-Content
+on `*.log`, `/var/log`, `syslog`, `logs/`), and leaves alone follow mode, commands
+that already end in a filter, real file redirects, and anything containing `nologsum`.
+
+## Test
+
+```bash
+python3 scripts/make-sample-log.py > /tmp/app.log
+logsum < /tmp/app.log | head            # 9 templates, then the last 10 lines
+scripts/test-opencode.sh anthropic/claude-haiku-4-5   # or any provider/model OpenCode lists
+```
+
+The OpenCode test proves three things: the plugin audit log shows the
+reduction, the session export contains the `[logsum]` header where the tool
+result used to be, and the model's answer quotes the template counts.
+
+## Dashboard
+
+Tiles for commands seen, summaries, tokens before and after, percent saved and
+estimated cost; a tokens-per-day chart; the latest summary as Drain3 saw it;
+per-agent totals; recent summaries; and every shell command the hooks looked at
+with the decision taken. Token counts are exact cl100k when tiktoken is installed
+(it is, via `logsum/pyproject.toml`).
+
+## Tuning
+
+`PASSTHROUGH_LINES`, `RARE_MAX` and `TAIL_LINES` at the top of `logsum.py`;
+`MASKS` for the fields that vary in your logs (add request ids, trace ids,
+usernames). Drain is line-based: group multi-line stack traces into one record
+before mining or each frame becomes its own template.
+
+## Remove
+
+```bash
+systemctl --user disable --now logsum-stats.service
+rm ~/.config/systemd/user/logsum-stats.service ~/.local/bin/logsum ~/.local/bin/logsum-stats
+rm ~/.config/opencode/plugins/logsum.js
+rm -rf ~/.local/share/logsum
+```
+On Windows, remove the `PreToolUse` entry from `~/.claude/settings.json` (a backup
+is written as `settings.json.before-logsum`).
+
+## Notes from the benchmarks
+
+- LLMLingua-2 (word-level compressor) runs at 35k tokens/s fp16 on an RTX 3090 but
+  destroys code, logs and filenames. Wrong tool for agent output.
+- RTK (per-command filters) is the best generic Bash-output reducer: pytest to 30%
+  with every failing test kept; but it truncates grep/find and ignores logs.
+- Tamp's default level mangled `git status` and `ls`; its lossless level is safe and
+  its re-read diffing is excellent (47k tokens to 545).
+- Drain3 turns 800 log lines into 9 templates; exact-line dedup (`rtk log`) saw 169
+  "unique" errors because it does not mask timestamps and PIDs.
+
+Details and numbers: `benchmarks/results/`.

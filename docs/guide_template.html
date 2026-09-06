@@ -1,0 +1,326 @@
+<title>Drain3 for OpenCode</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #F6F7F9; --surface: #FFFFFF; --ink: #1C2128; --ink-2: #4B5563; --ink-3: #6F7886; --line: #DCE0E6;
+    --accent: #3F5BD9; --accent-ink: #FFFFFF; --wild: #B26E10; --code-bg: #EEF0F4; --code-ink: #1F2530; --ok: #1F7A4D; --warn: #A05A00;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15181D; --surface: #1C2026; --ink: #E7EAEF; --ink-2: #B4BBC7; --ink-3: #8A93A2; --line: #2C323B;
+      --accent: #8AA0FF; --accent-ink: #0F1320; --wild: #E0A24A; --code-bg: #0F1216; --code-ink: #DDE2EA; --ok: #5CC48A; --warn: #E8B15C;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15181D; --surface: #1C2026; --ink: #E7EAEF; --ink-2: #B4BBC7; --ink-3: #8A93A2; --line: #2C323B;
+    --accent: #8AA0FF; --accent-ink: #0F1320; --wild: #E0A24A; --code-bg: #0F1216; --code-ink: #DDE2EA; --ok: #5CC48A; --warn: #E8B15C;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; font-size: 16px; line-height: 1.6; }
+  main { max-width: 74ch; margin: 0 auto; padding: 48px 24px 96px; }
+  h1, h2, h3 { text-wrap: balance; line-height: 1.2; margin: 0; }
+  h1 { font-size: 2.1rem; font-weight: 600; letter-spacing: -0.01em; }
+  h2 { font-size: 1.35rem; font-weight: 600; }
+  h3 { font-size: 1.05rem; font-weight: 600; }
+  p { margin: 0; max-width: 68ch; }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  code, pre, kbd { font-family: "IBM Plex Mono", "Cascadia Mono", Consolas, monospace; }
+  p code, li code, td code, summary code { background: var(--code-bg); color: var(--code-ink); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  .eyebrow { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); font-weight: 500; }
+  header { display: grid; gap: 14px; padding-bottom: 32px; border-bottom: 1px solid var(--line); }
+  header p.lede { font-size: 1.1rem; color: var(--ink-2); }
+  .facts { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 28px; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); }
+  .fact { padding: 14px 16px; border-right: 1px solid var(--line); display: grid; gap: 2px; }
+  .fact:last-child { border-right: 0; }
+  .fact .n { font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .fact .l { font-size: 0.8rem; color: var(--ink-3); }
+  @media (max-width: 560px) { .facts { grid-template-columns: 1fr; } .fact { border-right: 0; border-bottom: 1px solid var(--line); } .fact:last-child { border-bottom: 0; } }
+  nav.toc { margin-top: 28px; display: grid; gap: 6px; }
+  nav.toc ol { margin: 0; padding-left: 1.4em; display: grid; gap: 4px; color: var(--ink-2); }
+  nav.toc a { color: var(--ink); text-decoration: none; }
+  nav.toc a:hover { color: var(--accent); text-decoration: underline; }
+  section.step { display: grid; gap: 16px; padding: 40px 0 8px; border-bottom: 1px solid var(--line); scroll-margin-top: 24px; }
+  section.step:last-of-type { border-bottom: 0; }
+  .step-head { display: grid; grid-template-columns: 40px 1fr; gap: 14px; align-items: start; }
+  .marker { width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-weight: 600; font-variant-numeric: tabular-nums; display: grid; place-items: center; font-size: 0.95rem; margin-top: 1px; }
+  .step-body { display: grid; gap: 14px; padding-left: 54px; }
+  @media (max-width: 560px) { .step-body { padding-left: 0; } }
+  ul { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; max-width: 68ch; }
+  li { padding-left: 0.2em; }
+  figure.code { margin: 0; border: 1px solid var(--line); border-radius: 6px; background: var(--code-bg); overflow: hidden; }
+  figure.code figcaption { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 6px 12px; font-size: 0.75rem; letter-spacing: 0.04em; color: var(--ink-3); border-bottom: 1px solid var(--line); font-family: "IBM Plex Mono", monospace; }
+  figure.code button { font: inherit; font-size: 0.72rem; color: var(--ink-2); background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 2px 8px; cursor: pointer; }
+  figure.code button:hover { color: var(--accent); border-color: var(--accent); }
+  figure.code pre { margin: 0; padding: 12px 14px; overflow-x: auto; font-size: 0.82rem; line-height: 1.5; color: var(--code-ink); tab-size: 4; }
+  figure.code pre.tall { max-height: 520px; overflow-y: auto; }
+  details.src { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+  details.src summary { padding: 10px 14px; cursor: pointer; color: var(--ink-2); }
+  details.src figure.code { border: 0; border-top: 1px solid var(--line); border-radius: 0; }
+  .w { color: var(--wild); font-weight: 500; }
+  .cm { color: var(--ink-3); }
+  aside.note { border-left: 3px solid var(--accent); padding: 8px 14px; color: var(--ink-2); background: var(--surface); border-radius: 0 6px 6px 0; max-width: 68ch; }
+  aside.note.warn { border-left-color: var(--warn); }
+  aside.note strong { color: var(--ink); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 500; color: var(--ink-3); font-size: 0.78rem; letter-spacing: 0.04em; text-transform: uppercase; }
+  tr:last-child td { border-bottom: 0; }
+  td.num { text-align: right; }
+  .ok { color: var(--ok); font-weight: 500; }
+  .shot { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 14px 16px; display: grid; gap: 10px; font-size: 0.9rem; }
+  .shot .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+  .shot .tile { border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; display: grid; gap: 1px; }
+  .shot .tile .v { font-size: 1.25rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .shot .tile .l { font-size: 0.7rem; color: var(--ink-3); letter-spacing: 0.04em; text-transform: uppercase; }
+  .shot .tile.hero .v { color: var(--ok); }
+  footer { margin-top: 48px; color: var(--ink-3); font-size: 0.85rem; max-width: 68ch; }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">Field guide · Ubuntu 22.04 / 24.04</div>
+    <h1>Drain3 log summaries for OpenCode</h1>
+    <p class="lede">Repetitive log output is the most expensive thing a coding agent reads. This guide installs the Drain3 template miner, wraps it as a one-command summarizer, hooks it into OpenCode so the model sees nine templates with counts instead of eight hundred lines, and puts a browser dashboard on top so you can see what it saved. Every step was run and verified on a real machine; the numbers below are from that run.</p>
+    <div class="facts">
+      <div class="fact"><span class="n">800 → 28</span><span class="l">log lines the model reads, sample syslog</span></div>
+      <div class="fact"><span class="n">25,827 → 875</span><span class="l">tokens, exact cl100k count</span></div>
+      <div class="fact"><span class="n">0.2 s</span><span class="l">added per log command, CPU only</span></div>
+    </div>
+    <nav class="toc">
+      <div class="eyebrow">Steps</div>
+      <ol>
+        <li><a href="#s1">Install uv and Drain3</a></li>
+        <li><a href="#s2">Write the summarizer</a></li>
+        <li><a href="#s3">Expose it as a command and test it alone</a></li>
+        <li><a href="#s4">Install OpenCode and give it a model</a></li>
+        <li><a href="#s5">Add the plugin</a></li>
+        <li><a href="#s6">Run the end-to-end test</a></li>
+        <li><a href="#s7">Put a statistics dashboard in the browser</a></li>
+      </ol>
+      <p style="color: var(--ink-3); font-size: 0.9rem;">Then: tuning, limits, and removal.</p>
+    </nav>
+  </header>
+
+  <section class="step" id="s0">
+    <h2>What Drain does</h2>
+    <p>Drain parses each log line into a <em>template</em> (the fixed words) and <em>parameters</em> (the parts that vary), online, in one pass, using a fixed-depth parse tree. It runs at hundreds of thousands of lines per second on a CPU. Given masks for the fields that always vary, it turns this:</p>
+    <figure class="code"><figcaption><span>raw log, 3 of 87 lines</span></figcaption><pre>2026-09-06T10:00:23Z scheduler[6815]: TLS handshake error from 10.0.128.31:40135: EOF
+2026-09-06T10:00:28Z sshd[9408]: TLS handshake error from 10.0.81.62:15644: EOF
+2026-09-06T10:00:40Z systemd[684]: TLS handshake error from 10.0.172.203:25088: EOF</pre></figure>
+    <p>into this, which is what the model will receive:</p>
+    <figure class="code"><figcaption><span>logsum output, same lines</span></figcaption><pre>   87x  <span class="w">&lt;TS&gt;</span> <span class="w">&lt;*&gt;</span> TLS handshake error from <span class="w">&lt;IP:PORT&gt;</span>: EOF   (lines 24-797)
+         time 2026-09-06T10:00:23Z .. 2026-09-06T10:13:16Z
+         IP:PORT: 87 distinct, e.g. 10.0.1.10:4117, 10.0.10.12:13612, ...</pre></figure>
+    <p>Word-level compressors such as LLMLingua-2 are the wrong tool for this: they drop PIDs, IP octets and keywords because those look like low-information tokens. Template mining keeps every distinct value and only removes repetition.</p>
+  </section>
+
+  <section class="step" id="s1">
+    <div class="step-head"><div class="marker">1</div><h2>Install uv and Drain3</h2></div>
+    <div class="step-body">
+      <p>Nothing here needs sudo. uv manages Python and the virtual environment; Drain3 is a pure-Python package. tiktoken is optional: with it the dashboard reports exact token counts, without it a regex estimate that is within about two percent on logs.</p>
+      <figure class="code"><figcaption><span>shell</span><button type="button" data-copy>Copy</button></figcaption><pre>curl -LsSf https://astral.sh/uv/install.sh | sh
+export PATH="$HOME/.local/bin:$PATH"     <span class="cm"># add this line to ~/.bashrc as well</span>
+
+mkdir -p ~/logsum &amp;&amp; cd ~/logsum
+uv init --bare --python 3.12 --name logsum
+uv add drain3 tiktoken</pre></figure>
+      <p>Check it: <code>uv run python -c "import drain3; print(drain3.__file__)"</code> should print a path under <code>~/logsum/.venv</code>.</p>
+    </div>
+  </section>
+
+  <section class="step" id="s2">
+    <div class="step-head"><div class="marker">2</div><h2>Write the summarizer</h2></div>
+    <div class="step-body">
+      <p>Save this as <code>~/logsum/logsum.py</code>. It reads a log on stdin and prints templates with counts and line ranges. Three rules make it safe to put in front of every log command: input of 40 lines or fewer passes through untouched, templates seen three times or fewer are printed verbatim because rare lines are the signal, and the last ten lines are always shown verbatim because the newest line is usually the one that matters.</p>
+      <p>It also records every call to <code>~/.local/share/logsum/stats.jsonl</code> for the dashboard in step 7. The record is written by a forked, detached child <em>after</em> the output has been flushed, so token counting never delays the agent. Two environment variables let callers attribute the call: <code>LOGSUM_AGENT</code> and <code>LOGSUM_CMD_B64</code>, the command in base64 so no quoting can break it.</p>
+      <figure class="code"><figcaption><span>~/logsum/logsum.py</span><button type="button" data-copy>Copy</button></figcaption><pre class="tall">{{LOGSUM_PY}}</pre></figure>
+      <aside class="note"><strong>The masks are the whole game.</strong> Without the IP and PID masks, the same 800-line log fragments into hundreds of clusters and the summary is useless. If your logs carry request ids, trace ids or usernames, add a mask for each before anything else.</aside>
+    </div>
+  </section>
+
+  <section class="step" id="s3">
+    <div class="step-head"><div class="marker">3</div><h2>Expose it as a command and test it alone</h2></div>
+    <div class="step-body">
+      <p>The wrapper calls the venv's Python directly. Going through <code>uv run</code> on every tool call would add a dependency check to the hot path.</p>
+      <figure class="code"><figcaption><span>shell</span><button type="button" data-copy>Copy</button></figcaption><pre>cat &gt; ~/.local/bin/logsum &lt;&lt;'EOF'
+#!/usr/bin/env bash
+exec "$HOME/logsum/.venv/bin/python" "$HOME/logsum/logsum.py" "$@"
+EOF
+chmod +x ~/.local/bin/logsum</pre></figure>
+      <p>Make a realistic test log. This generator writes 800 lines with nine message shapes, including errors whose parameters vary, which is what a real service log looks like from the model's point of view.</p>
+      <figure class="code"><figcaption><span>shell</span><button type="button" data-copy>Copy</button></figcaption><pre>python3 - &lt;&lt;'EOF' &gt; /tmp/app.log
+import random
+random.seed(0)
+comps = ["nginx", "kube-proxy", "etcd", "scheduler", "api-server", "sshd", "systemd"]
+msgs = ["connection from {ip}:{port} accepted",
+        "request GET /api/v1/pods latency={ms}ms status=200",
+        "leader election: renewing lease for node-{n}",
+        "warning: disk usage on /var/lib at {pct}% (threshold 85%)",
+        "reconciling deployment default/web-{n}: 3 replicas ready",
+        "TLS handshake error from {ip}:{port}: EOF",
+        "started session {n} of user deploy",
+        "health check passed for backend-{n} in {ms}ms",
+        "ERROR failed to pull image registry.local/app:{n}: manifest unknown"]
+for i in range(800):
+    t = f"2026-09-06T10:{(i // 60) % 60:02d}:{i % 60:02d}Z"
+    m = random.choice(msgs).format(ip=f"10.0.{random.randint(0, 255)}.{random.randint(1, 254)}",
+        port=random.randint(1024, 65535), ms=random.randint(1, 900), n=random.randint(1, 40), pct=random.randint(60, 99))
+    print(f"{t} {random.choice(comps)}[{random.randint(100, 9999)}]: {m}")
+EOF
+
+printf 'a\nb\nc\n' | logsum          <span class="cm"># 3 lines: must come back unchanged</span>
+time logsum &lt; /tmp/app.log | head -20
+tail -n 1 ~/.local/share/logsum/stats.jsonl   <span class="cm"># the record the dashboard will read</span></pre></figure>
+      <p>Expected: the three-line input echoes back as is, the 800-line log returns in about 0.2 seconds as the header line, nine templates, and the tail, and the stats file has one JSON line with <code>"tok_in": 25827, "tok_out": 875</code>. If you have journal access (<code>adm</code> group), <code>journalctl -n 1000 --no-pager | logsum</code> is a good second test on real data.</p>
+    </div>
+  </section>
+
+  <section class="step" id="s4">
+    <div class="step-head"><div class="marker">4</div><h2>Install OpenCode and give it a model</h2></div>
+    <div class="step-body">
+      <figure class="code"><figcaption><span>shell</span><button type="button" data-copy>Copy</button></figcaption><pre>curl -fsSL https://opencode.ai/install | bash
+export PATH="$HOME/.opencode/bin:$PATH"     <span class="cm"># the installer adds this to your shell rc too</span>
+opencode --version</pre></figure>
+      <p>OpenCode needs a provider. Either run <code>opencode auth login</code> and follow the prompts, or export a key before starting it. Keys in a <code>.env</code> file in the project directory are loaded automatically.</p>
+      <figure class="code"><figcaption><span>shell</span><button type="button" data-copy>Copy</button></figcaption><pre>export ANTHROPIC_API_KEY=...        <span class="cm"># or OPENAI_API_KEY, OPENROUTER_API_KEY, ...</span>
+opencode models anthropic | head       <span class="cm"># lists ids like anthropic/claude-haiku-4-5</span></pre></figure>
+      <aside class="note warn"><strong>Organization-scoped Anthropic keys</strong> fail with "this request must include the anthropic-workspace-id header". Either use a workspace-scoped key, or add the header in <code>~/.config/opencode/opencode.json</code> under <code>provider.anthropic.options.headers</code>.</aside>
+    </div>
+  </section>
+
+  <section class="step" id="s5">
+    <div class="step-head"><div class="marker">5</div><h2>Add the plugin</h2></div>
+    <div class="step-body">
+      <p>OpenCode loads every file in <code>~/.config/opencode/plugins/</code> at startup. The plugin hooks <code>tool.execute.after</code>, which runs after a tool has finished and lets you rewrite the text handed back to the model. The command itself is never changed, so exit codes and side effects are exactly what the agent asked for.</p>
+      <p>It only acts when the bash command reads a log (journalctl, dmesg, docker or kubectl logs, or cat/tail/head on a <code>.log</code> file, <code>/var/log</code>, <code>syslog</code>, or a <code>logs/</code> directory) or when the <code>read</code> tool opens a <code>.log</code> file. Commands already piped into grep or awk are left alone, as is anything containing <code>nologsum</code>. It passes <code>LOGSUM_AGENT=opencode</code> and the command to the summarizer so the dashboard can attribute the savings. Any failure falls back to the raw output and writes a line to an audit log.</p>
+      <figure class="code"><figcaption><span>~/.config/opencode/plugins/logsum.js</span><button type="button" data-copy>Copy</button></figcaption><pre class="tall">{{OPENCODE_PLUGIN_JS}}</pre></figure>
+      <figure class="code"><figcaption><span>shell</span><button type="button" data-copy>Copy</button></figcaption><pre>mkdir -p ~/.config/opencode/plugins
+cp logsum.js ~/.config/opencode/plugins/logsum.js     <span class="cm"># from wherever you saved the file above</span></pre></figure>
+    </div>
+  </section>
+
+  <section class="step" id="s6">
+    <div class="step-head"><div class="marker">6</div><h2>Run the end-to-end test</h2></div>
+    <div class="step-body">
+      <p>Use a throwaway project so the agent cannot touch anything real, and run OpenCode headless with <code>--auto</code> so it does not stop to ask permission for the bash call.</p>
+      <figure class="code"><figcaption><span>shell</span><button type="button" data-copy>Copy</button></figcaption><pre>mkdir -p ~/oc-test &amp;&amp; cd ~/oc-test &amp;&amp; git init -q
+cp /tmp/app.log app.log
+: &gt; ~/.config/opencode/logsum-plugin.log
+
+opencode run --auto -m anthropic/claude-haiku-4-5 \
+  "Use the bash tool to run exactly this command: tail -n 300 app.log   Then answer in 3 short bullet points: which error/warning patterns appear and how often."
+
+cat ~/.config/opencode/logsum-plugin.log</pre></figure>
+      <p>Three things prove it worked. The audit log has one line for the bash call showing the size reduction. The answer quotes the template counts rather than guessing from raw lines. And the session export contains the summary header where the tool result used to be:</p>
+      <figure class="code"><figcaption><span>shell</span><button type="button" data-copy>Copy</button></figcaption><pre>SID=$(opencode session list | grep -oE 'ses_[A-Za-z0-9]+' | head -1)
+opencode export "$SID" | grep -oE '\[logsum\] [0-9]+ lines -&gt; [0-9]+ templates'</pre></figure>
+      <div class="tablewrap"><table>
+        <thead><tr><th>check</th><th>result from the verification run</th></tr></thead>
+        <tbody>
+          <tr><td>audit log</td><td><code>bash 25296-&gt;2237 tail -n 300 app.log</code> <span class="ok">✓</span></td></tr>
+          <tr><td>session export</td><td><code>[logsum] 300 lines -&gt; 9 templates</code> present <span class="ok">✓</span></td></tr>
+          <tr><td>model's answer</td><td>34 image-pull errors, 33 disk warnings ranging 60 to 99 percent, 30 TLS errors. Identical to the Drain3 counts. <span class="ok">✓</span></td></tr>
+          <tr><td>wall time</td><td class="num">14 s for the whole session</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section class="step" id="s7">
+    <div class="step-head"><div class="marker">7</div><h2>Put a statistics dashboard in the browser</h2></div>
+    <div class="step-body">
+      <p>The summarizer already writes one JSON line per call. The dashboard is a single Python file with no dependencies beyond the standard library: it serves a page at <code>http://localhost:8765</code> and a JSON endpoint at <code>/api/stats</code>, re-reads the stats file whenever it changes, and refreshes itself every 15 seconds.</p>
+      <p>What you see, top to bottom:</p>
+      <ul>
+        <li><strong>Five tiles.</strong> Calls (summarized versus passed through), tokens before, tokens after, percent saved, and the estimated cost saved at a price per million input tokens you can edit. The price is remembered in the browser.</li>
+        <li><strong>Tokens per day.</strong> One bar per day, blue for what the model actually read, orange stacked on top for what logsum removed. Hover a day for the numbers; the "Show as table" button gives the same data as text.</li>
+        <li><strong>Latest summary, how Drain3 saw it.</strong> The five most frequent templates of the most recent call, with counts and the wildcards highlighted. This is the quickest way to check that the masks fit your logs.</li>
+        <li><strong>By agent.</strong> One row per caller, so you can compare what OpenCode and any other agent saved.</li>
+        <li><strong>Recent calls.</strong> The last 60 calls with command, lines, tokens, percent saved and processing time. Each row expands to its templates.</li>
+      </ul>
+      <div class="shot">
+        <div class="eyebrow">What the tiles showed after the verification run (4 calls)</div>
+        <div class="tiles">
+          <div class="tile"><div class="l">Calls</div><div class="v">4</div></div>
+          <div class="tile"><div class="l">Tokens before</div><div class="v">55k</div></div>
+          <div class="tile"><div class="l">Tokens after</div><div class="v">3.5k</div></div>
+          <div class="tile hero"><div class="l">Saved</div><div class="v">94%</div></div>
+          <div class="tile hero"><div class="l">Est. cost saved</div><div class="v">$0.15</div></div>
+        </div>
+        <p style="color: var(--ink-3); font-size: 0.85rem;">By agent: opencode 300 → 28 lines, 9,653 → 875 tokens, 91 percent saved. Average 70 ms per summary, exact cl100k counts.</p>
+      </div>
+      <p>Save the server as <code>~/logsum/logsum_stats.py</code>:</p>
+      <details class="src"><summary>Show <code>logsum_stats.py</code> (server plus the dashboard page, about 170 lines)</summary>
+        <figure class="code"><figcaption><span>~/logsum/logsum_stats.py</span><button type="button" data-copy>Copy</button></figcaption><pre class="tall">{{LOGSUM_STATS_PY}}</pre></figure>
+      </details>
+      <p>Then give it a wrapper and run it as a user service, so it starts with the machine and restarts if it dies. No sudo is needed for <code>systemctl --user</code>.</p>
+      <figure class="code"><figcaption><span>shell</span><button type="button" data-copy>Copy</button></figcaption><pre>cat &gt; ~/.local/bin/logsum-stats &lt;&lt;'EOF'
+#!/usr/bin/env bash
+exec "$HOME/logsum/.venv/bin/python" "$HOME/logsum/logsum_stats.py" "$@"
+EOF
+chmod +x ~/.local/bin/logsum-stats
+
+mkdir -p ~/.config/systemd/user
+cat &gt; ~/.config/systemd/user/logsum-stats.service &lt;&lt;'EOF'
+[Unit]
+Description=logsum (Drain3) token-savings dashboard
+After=network.target
+
+[Service]
+ExecStart=%h/.local/bin/logsum-stats --host 127.0.0.1 --port 8765
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+EOF
+systemctl --user daemon-reload
+systemctl --user enable --now logsum-stats.service
+loginctl enable-linger "$USER"      <span class="cm"># keep it running when you are not logged in</span>
+
+curl -s 'http://127.0.0.1:8765/api/stats?days=7' | python3 -m json.tool | head -20</pre></figure>
+      <p>Open <a href="http://localhost:8765">http://localhost:8765</a> in a browser. If the machine is remote, keep the server on <code>127.0.0.1</code> and tunnel: <code>ssh -L 8765:127.0.0.1:8765 user@host</code>. Binding to <code>0.0.0.0</code> exposes your command history to the network, so only do that behind a firewall you trust.</p>
+      <aside class="note"><strong>Reading the stats file directly.</strong> It is plain JSON lines, so <code>jq</code> works too: <code>jq -s 'map(select(.passthrough|not)) | {calls: length, before: map(.tok_in)|add, after: map(.tok_out)|add}' ~/.local/share/logsum/stats.jsonl</code>. To start over, delete the file; the dashboard shows an empty state until the next call.</aside>
+    </div>
+  </section>
+
+  <section class="step" id="tuning">
+    <h2>Tuning and limits</h2>
+    <ul>
+      <li><strong>Thresholds.</strong> <code>PASSTHROUGH_LINES</code> decides when summarizing starts, <code>RARE_MAX</code> how rare a template must be to stay verbatim, <code>TAIL_LINES</code> how much recency to keep. The defaults were chosen so a 300-line read costs about 30 lines.</li>
+      <li><strong>Opting out.</strong> Any command containing <code>nologsum</code> (for example <code>tail -n 500 app.log # nologsum</code>) is passed through, and the summary header tells the model so. Commands that already filter with grep, awk or jq are never touched. Set <code>LOGSUM_NOSTATS=1</code> to stop recording.</li>
+      <li><strong>Multi-line records.</strong> Drain is line-based. Java or Python stack traces become one template per frame. Group them into one record per exception before mining, or the summary hides the trace.</li>
+      <li><strong>New masks.</strong> Add a regex and a name to <code>MASKS</code>; earlier entries win, so put the more specific pattern first, as with <code>IP:PORT</code> before <code>IP</code>. The "Latest summary" panel on the dashboard shows immediately whether a new mask took.</li>
+      <li><strong>Both files are one system.</strong> Edit <code>~/logsum/logsum.py</code> and every agent that calls <code>logsum</code> picks up the change on its next tool call. No restart is needed.</li>
+      <li><strong>Other agents.</strong> Anything that can run a shell pipeline can use it. Claude Code, for instance, cannot modify tool output after the fact, so there the same summarizer is wired as a PreToolUse hook that rewrites the command to <code>… | env LOGSUM_AGENT=claude-code logsum</code>. The dashboard then shows both agents side by side.</li>
+    </ul>
+  </section>
+
+  <section class="step" id="remove">
+    <h2>Removing it</h2>
+    <figure class="code"><figcaption><span>shell</span><button type="button" data-copy>Copy</button></figcaption><pre>systemctl --user disable --now logsum-stats.service
+rm ~/.config/systemd/user/logsum-stats.service ~/.local/bin/logsum-stats
+rm ~/.config/opencode/plugins/logsum.js ~/.config/opencode/logsum-plugin.log
+rm ~/.local/bin/logsum
+rm -rf ~/logsum ~/.local/share/logsum     <span class="cm"># the uv project and the stats file</span></pre></figure>
+    <p>OpenCode itself is removed with <code>opencode uninstall</code>.</p>
+  </section>
+
+  <footer>Verified 2026-09-06 with Drain3 0.9.11, OpenCode 1.18.29, uv 0.12, Python 3.12, tiktoken 0.14. Token counts use the cl100k tokenizer as a stand-in for the model's own.</footer>
+</main>
+
+<script>
+  document.querySelectorAll('figure.code button[data-copy]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var pre = btn.closest('figure').querySelector('pre');
+      var text = pre.innerText;
+      function done(ok) { btn.textContent = ok ? 'Copied' : 'Select and copy'; setTimeout(function () { btn.textContent = 'Copy'; }, 1600); }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+      } else { done(false); }
+    });
+  });
+</script>

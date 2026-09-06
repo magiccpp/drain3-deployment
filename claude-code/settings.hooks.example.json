@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["C:\\Users\\<you>\\.claude\\hooks\\logsum-hook.js"],
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

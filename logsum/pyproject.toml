@@ -1,0 +1,9 @@
+[project]
+name = "logsum"
+version = "0.1.0"
+description = "Drain3 log summarizer for coding agents, with a token-savings dashboard"
+requires-python = ">=3.10"
+dependencies = [
+    "drain3>=0.9.11",
+    "tiktoken>=0.7",
+]
