@@ -107,6 +107,20 @@ opencode --version
 The installer puts the binary in `~/.opencode/bin` but does not always add that
 directory to your shell's PATH, so add the line yourself if `opencode` is not found.
 
+### Provider keys
+
+OpenCode enables a provider when its key is in the environment, or after
+`opencode auth login`. It reads a `.env` only from the **project directory**, so a
+key file in your home is invisible to the TUI unless your shell exports it. If
+you keep keys in `~/.env` (`OPENAI_API_KEY=...` one per line), add this to
+`~/.bashrc` and `~/.profile`, then open a new terminal:
+
+```bash
+if [ -f "$HOME/.env" ]; then set -a; . "$HOME/.env"; set +a; fi
+```
+
+Check with `opencode models openai | wc -l`: zero means the key is not visible.
+
 ### Model configuration (Terra for the main agent, Luna for delegated work)
 
 ```bash
