@@ -283,6 +283,7 @@ loginctl enable-linger "$USER"      <span class="cm"># keep it running when you 
 
 curl -s 'http://127.0.0.1:8765/api/stats?days=7' | python3 -m json.tool | head -20</pre></figure>
       <p>Open <a href="http://localhost:8765">http://localhost:8765</a> in a browser. If the machine is remote, keep the server on <code>127.0.0.1</code> and tunnel: <code>ssh -L 8765:127.0.0.1:8765 user@host</code>. Binding to <code>0.0.0.0</code> exposes your command history to the network, so only do that behind a firewall you trust.</p>
+      <aside class="note"><strong>Docker instead of systemd.</strong> The repository also ships a container that runs the summarizer as a warm HTTP service together with the dashboard: <code>scripts/docker-up.sh</code> builds it, starts it on port 8765, and installs a small <code>logsum</code> client that POSTs to <code>/summarize</code> and falls back to passthrough if the container is down. A call costs about 35 ms instead of 200 ms because Drain3 and tiktoken stay loaded. Stats live in a named volume; the audit logs are mounted read-only.</aside>
       <aside class="note"><strong>Reading the stats file directly.</strong> It is plain JSON lines, so <code>jq</code> works too: <code>jq -s 'map(select(.passthrough|not)) | {calls: length, before: map(.tok_in)|add, after: map(.tok_out)|add}' ~/.local/share/logsum/stats.jsonl</code>. To start over, delete the file; the dashboard shows an empty state until the next call.</aside>
     </div>
   </section>

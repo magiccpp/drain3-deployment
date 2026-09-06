@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# logsum client: send stdin to the logsum service, print the summary.
+# Falls back to the local Python summarizer if the service is unreachable, and to plain passthrough
+# if that is missing too, so an agent never loses its log output.
+#   env: LOGSUM_URL (default http://127.0.0.1:8765/summarize), LOGSUM_AGENT, LOGSUM_CMD_B64, LOGSUM_LOCAL (path to logsum.py)
+URL="${LOGSUM_URL:-http://127.0.0.1:8765/summarize}"
+TMP="$(mktemp)"; trap 'rm -f "$TMP"' EXIT
+cat > "$TMP"
+if curl -sS --fail --max-time 60 -H 'Content-Type: text/plain; charset=utf-8' \
+     -H "X-Logsum-Agent: ${LOGSUM_AGENT:-unknown}" -H "X-Logsum-Cmd-B64: ${LOGSUM_CMD_B64:-}" \
+     --data-binary @"$TMP" "$URL" 2>/dev/null; then
+  exit 0
+fi
+LOCAL="${LOGSUM_LOCAL:-$(dirname "$(readlink -f "$0")")/../logsum.py}"
+if [ -f "$LOCAL" ] && [ -x "$(dirname "$LOCAL")/.venv/bin/python" ]; then
+  exec "$(dirname "$LOCAL")/.venv/bin/python" "$LOCAL" < "$TMP"
+fi
+cat "$TMP"

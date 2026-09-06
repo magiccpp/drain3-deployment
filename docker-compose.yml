@@ -1,0 +1,21 @@
+# logsum: Drain3 summarizer service + token-savings dashboard in one container.
+#   scripts/docker-up.sh            (sets the env below, creates the mounted log files, builds, starts)
+# Environment (all optional):
+#   LOGSUM_BIND        host address to publish on. 127.0.0.1 (default) or 0.0.0.0 (WSL2, so a Windows browser can reach it)
+#   OPENCODE_LOG       OpenCode plugin audit log to show in the dashboard
+#   CLAUDE_HOOK_LOG    Claude Code hook audit log (on WSL2: /mnt/c/Users/<you>/.claude/hooks/logsum-hook.log)
+services:
+  logsum:
+    build: ./logsum
+    image: logsum:latest
+    container_name: logsum
+    ports:
+      - "${LOGSUM_BIND:-127.0.0.1}:8765:8765"
+    volumes:
+      - logsum-data:/data
+      - "${OPENCODE_LOG:-/dev/null}:/inspect/opencode.log:ro"
+      - "${CLAUDE_HOOK_LOG:-/dev/null}:/inspect/claude-code.log:ro"
+    restart: unless-stopped
+
+volumes:
+  logsum-data:

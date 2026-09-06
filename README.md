@@ -28,27 +28,59 @@ becomes
 |---|---|
 | `logsum/logsum.py` | the summarizer: stdin log in, Drain3 summary out; records each call to `~/.local/share/logsum/stats.jsonl` |
 | `logsum/logsum_stats.py` | dashboard server (stdlib only): `http://localhost:8765`, JSON at `/api/stats` |
-| `logsum/logsum-stats.service` | systemd user unit for the dashboard |
+| `logsum/server.py` | the container entrypoint: `POST /summarize` (warm Drain3 + tiktoken) plus the dashboard |
+| `logsum/Dockerfile`, `docker-compose.yml` | the image (python:3.12-slim, non-root, tiktoken table baked in) and the service definition |
+| `logsum/client/logsum` | host-side client with local and passthrough fallback |
+| `logsum/logsum-stats.service` | systemd user unit for the no-Docker install |
 | `opencode/logsum.js` | OpenCode plugin (`tool.execute.after`): replaces log output with the summary |
 | `claude-code/logsum-hook.js` | Claude Code PreToolUse hook for Windows: pipes log commands through `logsum` in WSL2 |
 | `claude-code/install.ps1` | installs the hook and merges it into `~/.claude/settings.json` |
-| `scripts/install.sh` | Ubuntu / WSL2 installer: uv env, wrappers, dashboard service, self-test |
+| `scripts/docker-up.sh`, `scripts/docker-down.sh`, `scripts/install-compose.sh` | container lifecycle |
+| `scripts/install.sh` | no-Docker installer: uv env, wrappers, dashboard service, self-test |
 | `scripts/install-opencode-plugin.sh`, `scripts/test-opencode.sh` | plugin install and a headless end-to-end test |
 | `docs/` | the full guide (`drain3-opencode-guide.html`, built from `guide_template.html` by `build_guide.py`) |
 | `benchmarks/` | how this was chosen: LLMLingua-2 on GPU, RTK vs Tamp on real tool outputs, Drain3 vs line dedup |
 
-## Install on Ubuntu or WSL2
+## Install with Docker (recommended)
+
+One container runs the summarizer as a warm HTTP service and the dashboard.
+Stats live in a named volume; the agents' audit logs are mounted read-only.
 
 ```bash
 git clone git@github.com:magiccpp/drain3-deployment.git
 cd drain3-deployment
-scripts/install.sh                      # uv + drain3 + wrappers + dashboard service, no sudo
+scripts/install-compose.sh              # only if `docker compose` is missing (user-local plugin, no sudo)
+scripts/docker-up.sh                    # build, start, install the `logsum` client into ~/.local/bin, self-test
 scripts/install-opencode-plugin.sh      # OpenCode
+```
+
+On WSL2 use `scripts/docker-up.sh --bind 0.0.0.0 --claude-hook-log /mnt/c/Users/<you>/.claude/hooks/logsum-hook.log`
+so the Windows browser can reach the dashboard and Claude Code activity is shown.
+Requires Docker with your user in the `docker` group (`sudo usermod -aG docker $USER`).
+
+The `logsum` command on the host is a small client: it POSTs stdin to
+`http://127.0.0.1:8765/summarize` and prints the reply. If the container is down
+it falls back to the local Python summarizer when one is installed, otherwise it
+passes the log through unchanged, so an agent never loses output. A call costs
+about 35 ms against the container versus 200 ms for a fresh Python process.
+
+```bash
+scripts/docker-down.sh                  # stop; add --purge to drop the stats volume
+docker compose logs -f logsum           # service log
+curl -s localhost:8765/health
+```
+
+## Install without Docker
+
+```bash
+scripts/install.sh                      # uv + drain3 + wrappers + dashboard as a systemd user service, no sudo
+scripts/install-opencode-plugin.sh
 ```
 
 Then open <http://localhost:8765>. On WSL2, pass `--bind 0.0.0.0` to `install.sh`
 so a Windows browser can reach it, and `--claude-hook-log /mnt/c/Users/<you>/.claude/hooks/logsum-hook.log`
-so Claude Code activity shows up too.
+so Claude Code activity shows up too. In this mode each call starts a Python
+process that forks a detached child to record stats after the output is flushed.
 
 ### Claude Code on Windows (summarizer in WSL2)
 

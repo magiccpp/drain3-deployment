@@ -6,9 +6,9 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 tpl = (HERE / "guide_template.html").read_text(encoding="utf-8")
 files = {
-    "LOGSUM_PY": ROOT / "logsum.py",
-    "LOGSUM_STATS_PY": ROOT / "logsum_stats.py",
-    "OPENCODE_PLUGIN_JS": ROOT / "opencode-logsum.js",
+    "LOGSUM_PY": ROOT / "logsum" / "logsum.py",
+    "LOGSUM_STATS_PY": ROOT / "logsum" / "logsum_stats.py",
+    "OPENCODE_PLUGIN_JS": ROOT / "opencode" / "logsum.js",
 }
 for key, path in files.items():
     src = path.read_text(encoding="utf-8").rstrip("\n")

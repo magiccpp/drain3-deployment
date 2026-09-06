@@ -50,19 +50,21 @@ def count_tokens(text: str) -> tuple[int, str]:
         return len(re.findall(r"[A-Za-z]+|\d{1,3}|[^\w\s]|_", text)), "estimate"
 
 
-def record_stats(raw: str, out: str, meta: dict) -> None:
-    """Append one JSON line. Called in a forked child after stdout is closed."""
+def record_stats(raw: str, out: str, meta: dict, agent: str | None = None, cmd_b64: str | None = None) -> None:
+    """Append one JSON line. CLI mode calls this in a forked child; the server calls it from a thread."""
     if os.environ.get("LOGSUM_NOSTATS"):
         return
+    if cmd_b64 is None:
+        cmd_b64 = os.environ.get("LOGSUM_CMD_B64", "")
     try:
-        cmd = base64.b64decode(os.environ.get("LOGSUM_CMD_B64", "")).decode("utf-8", "replace") if os.environ.get("LOGSUM_CMD_B64") else ""
+        cmd = base64.b64decode(cmd_b64).decode("utf-8", "replace") if cmd_b64 else ""
     except Exception:
         cmd = ""
     tok_in, method = count_tokens(raw)
     tok_out, _ = count_tokens(out)
     rec = {
         "ts": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
-        "agent": os.environ.get("LOGSUM_AGENT", "unknown"),
+        "agent": agent or os.environ.get("LOGSUM_AGENT", "unknown"),
         "cmd": cmd[:200],
         "lines_in": raw.count("\n") + (1 if raw and not raw.endswith("\n") else 0),
         "lines_out": out.count("\n") + (1 if out and not out.endswith("\n") else 0),
