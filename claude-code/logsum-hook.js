@@ -13,8 +13,26 @@ const path = require('path');
 let cfg = { distro: 'Ubuntu-24.04', logsum: '/home/ken/.local/bin/logsum', agent: 'claude-code' };
 try { cfg = { ...cfg, ...JSON.parse(fs.readFileSync(path.join(__dirname, 'logsum-hook.config.json'), 'utf8')) }; } catch {}
 const LOG_FILE = path.join(__dirname, 'logsum-hook.log');
-// The agent name and the (base64) command are passed as env so the stats dashboard can attribute the call.
-const logsumFor = (cmd) => `wsl.exe -d ${cfg.distro} -- env LOGSUM_AGENT=${cfg.agent} ` +
+
+// The model this session is running on, read from the tail of the transcript Claude Code hands us
+// (assistant messages carry "model":"claude-..."). The dashboard prices the saved tokens at that model's input rate.
+function sessionModel(transcriptPath) {
+  try {
+    if (!transcriptPath || !fs.existsSync(transcriptPath)) return '';
+    const size = fs.statSync(transcriptPath).size;
+    const fd = fs.openSync(transcriptPath, 'r');
+    const len = Math.min(size, 256 * 1024);
+    const buf = Buffer.alloc(len);
+    fs.readSync(fd, buf, 0, len, size - len);
+    fs.closeSync(fd);
+    const m = [...buf.toString('utf8').matchAll(/"model":"(claude-[A-Za-z0-9.\-]+)"/g)].pop();
+    return m ? `anthropic/${m[1]}` : '';
+  } catch { return ''; }
+}
+
+// Agent name, (base64) command and model are passed as env so the stats dashboard can attribute and price the call.
+const logsumFor = (cmd, model) => `wsl.exe -d ${cfg.distro} -- env LOGSUM_AGENT=${cfg.agent} ` +
+  (model ? `LOGSUM_MODEL=${model} ` : '') +
   `LOGSUM_CMD_B64=${Buffer.from(cmd, 'utf8').toString('base64')} ${cfg.logsum}`;
 
 // Commands whose output is a log stream (anywhere in the command, including inside an ssh/wsl quoted string).
@@ -42,12 +60,12 @@ function decide(cmd) {
   return 'rewrite';
 }
 
-function rewrite(cmd, toolName) {
+function rewrite(cmd, toolName, model) {
   if (toolName === 'PowerShell') {
     // PS 5.1 pipes to native exes in ASCII by default; force UTF-8 (no BOM) so nothing turns into '?'.
-    return `$OutputEncoding=New-Object Text.UTF8Encoding $false; & { ${cmd} } 2>&1 | Out-String -Stream | ${logsumFor(cmd)}`;
+    return `$OutputEncoding=New-Object Text.UTF8Encoding $false; & { ${cmd} } 2>&1 | Out-String -Stream | ${logsumFor(cmd, model)}`;
   }
-  return `{ ${cmd} ; } 2>&1 | ${logsumFor(cmd)}`;   // Bash (Git Bash on Windows)
+  return `{ ${cmd} ; } 2>&1 | ${logsumFor(cmd, model)}`;   // Bash (Git Bash on Windows)
 }
 
 function audit(toolName, decision, cmd) {
@@ -66,7 +84,7 @@ process.stdin.on('end', () => {
   const decision = decide(cmd);
   audit(toolName, decision, cmd);
   if (decision !== 'rewrite') process.exit(0);
-  const updated = rewrite(cmd, toolName);
+  const updated = rewrite(cmd, toolName, sessionModel(data.transcript_path));
   // On Windows, stdout to a pipe is async: never process.exit() right after writing or the JSON is truncated.
   process.stdout.write(JSON.stringify({
     hookSpecificOutput: {

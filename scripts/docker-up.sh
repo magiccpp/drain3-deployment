@@ -47,5 +47,5 @@ chmod +x "$HOME/.local/bin/logsum"
 for i in $(seq 1 30); do curl -sf http://127.0.0.1:8765/health >/dev/null && break; sleep 1; done
 echo "== health: $(curl -s http://127.0.0.1:8765/health)"
 echo "== self test:"
-python3 "$REPO/scripts/make-sample-log.py" | LOGSUM_AGENT=docker-test "$HOME/.local/bin/logsum" | head -3
+python3 "$REPO/scripts/make-sample-log.py" | LOGSUM_NOSTATS=1 LOGSUM_AGENT=docker-test "$HOME/.local/bin/logsum" | head -3
 echo "dashboard: http://localhost:8765"

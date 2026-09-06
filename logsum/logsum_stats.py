@@ -70,20 +70,58 @@ def estimate_cost(vals: dict, price: dict) -> float:
             + vals["cache_read"] * price.get("cache_read", 0) + vals["cache_write"] * price.get("cache_write", 0)) / 1e6
 
 
+_snap: dict = {"key": None, "path": None}
+
+
+def _db_snapshot() -> str:
+    """Copy opencode.db plus its -wal/-shm files to a private temp dir and open the copy.
+
+    OpenCode keeps the database in WAL mode. Opening the original read-only with immutable=1 (needed
+    on a read-only mount) ignores the WAL, so the newest sessions and messages are invisible until a
+    checkpoint. A copy that includes the WAL is recovered normally on open and sees everything. The
+    copy is refreshed only when any of the three files changes."""
+    import shutil
+    import tempfile
+    parts = [OPENCODE_DB, Path(str(OPENCODE_DB) + "-wal"), Path(str(OPENCODE_DB) + "-shm")]
+    key = tuple((p.stat().st_mtime_ns, p.stat().st_size) if p.exists() else None for p in parts)
+    if key != _snap["key"] or not _snap["path"] or not Path(_snap["path"]).exists():
+        d = Path(tempfile.gettempdir()) / "logsum-opencode-snapshot"
+        d.mkdir(exist_ok=True)
+        for p, name in zip(parts, ("snap.db", "snap.db-wal", "snap.db-shm")):
+            dst = d / name
+            if p.exists():
+                shutil.copyfile(p, dst)
+            elif dst.exists():
+                dst.unlink()
+        _snap.update(key=key, path=str(d / "snap.db"))
+    return _snap["path"]
+
+
 def load_opencode(days: int) -> dict:
-    """Per model endpoint and per agent token usage from OpenCode, main vs subagent sessions kept apart."""
-    empty = {"available": False, "db": str(OPENCODE_DB), "totals": {}, "by_model": [], "by_agent": [], "by_day": [], "sessions": 0}
+    """Per model endpoint and per agent token usage from OpenCode, main vs subagent sessions kept apart.
+    Also returns "_msgs": sorted [(time_ms, provider/model)] so logsum records can be matched to the
+    model that read them (stripped before the JSON response)."""
+    empty = {"available": False, "db": str(OPENCODE_DB), "totals": {}, "by_model": [], "by_agent": [], "by_day": [], "sessions": 0, "_msgs": [], "_sessions": {}}
     if not OPENCODE_DB.exists():
         return empty
     since_ms = int((time.time() - days * 86400) * 1000)
     rows = []
-    for attempt in range(2):  # immutable=1 lets us read a WAL database from a read-only mount; retry once on a torn read
+    for attempt in range(2):  # retry once on a torn read (the snapshot is taken while OpenCode may be writing)
         try:
-            con = sqlite3.connect(f"file:{OPENCODE_DB}?immutable=1", uri=True, timeout=1)
+            con = sqlite3.connect(_db_snapshot(), timeout=1)
             try:
                 rows = con.execute(
                     "SELECT m.time_created, m.data, s.parent_id, s.id, s.title FROM message m JOIN session s ON s.id = m.session_id "
                     "WHERE m.time_created >= ?", (since_ms,)).fetchall()
+                # every session's own model (subagent sessions carry the subagent's model): exact attribution for summaries
+                session_models = {}
+                for sid, mjson in con.execute("SELECT id, model FROM session WHERE model IS NOT NULL"):
+                    try:
+                        mm = json.loads(mjson)
+                        if mm.get("id"):
+                            session_models[sid] = f"{mm.get('providerID') or '?'}/{mm['id']}"
+                    except (json.JSONDecodeError, TypeError):
+                        pass
             finally:
                 con.close()
             break
@@ -97,6 +135,7 @@ def load_opencode(days: int) -> dict:
     by_agent: dict[tuple, dict] = defaultdict(lambda: {**bucket(), "models": set()})
     by_day: dict[str, dict] = defaultdict(lambda: {"main": 0, "subagent": 0, "cost": 0.0})
     sessions = set()
+    msgs: list[tuple[int, str]] = []
     for t_ms, data, parent_id, sid, title in rows:
         try:
             d = json.loads(data)
@@ -107,6 +146,7 @@ def load_opencode(days: int) -> dict:
         tok = d.get("tokens") or {}
         cache = tok.get("cache") or {}
         model = f"{d.get('providerID') or '?'}/{d.get('modelID') or '?'}"
+        msgs.append((int(t_ms), model))
         role = "subagent" if parent_id else "main"
         agent = d.get("agent") or d.get("mode") or "?"
         vals = {"input": tok.get("input", 0) or 0, "output": tok.get("output", 0) or 0, "reasoning": tok.get("reasoning", 0) or 0,
@@ -154,7 +194,44 @@ def load_opencode(days: int) -> dict:
         "by_model": sorted([{"model": m, "role": r, **finish(v)} for (m, r), v in by_model.items()], key=lambda x: (-x["cost"], x["model"], x["role"])),
         "by_agent": sorted([{"agent": a, "role": r, **finish(vv)} for (a, r), vv in by_agent.items()], key=lambda x: (x["role"], -x["cost"])),
         "by_day": day_list,
+        "_msgs": sorted(msgs),
+        "_sessions": session_models,
     }
+
+
+def _ts_ms(ts: str) -> int:
+    """logsum record timestamp ('2026-09-06T17:34:51+0800') to epoch ms."""
+    try:
+        return int(datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S%z").timestamp() * 1000)
+    except ValueError:
+        return int(datetime.strptime(ts[:19], "%Y-%m-%dT%H:%M:%S").timestamp() * 1000)
+
+
+def resolve_model(rec: dict, agent_models: dict, msgs: list[tuple[int, str]], sessions: dict | None = None) -> tuple[str, str]:
+    """Which model read this summary? (model, how): the caller said so; or the OpenCode session it
+    named (exact, works for subagents); or OpenCode's next assistant message within 15 minutes; or a
+    configured fallback per agent."""
+    if rec.get("model"):
+        return rec["model"], "recorded"
+    if rec.get("session") and sessions and rec["session"] in sessions:
+        return sessions[rec["session"]], "opencode-session"
+    if rec.get("agent") == "opencode" and msgs:
+        import bisect
+        t = _ts_ms(rec["ts"])
+        i = bisect.bisect_left(msgs, (t, ""))
+        if i < len(msgs) and msgs[i][0] - t <= 15 * 60 * 1000:
+            return msgs[i][1], "opencode-db"
+    fb = agent_models.get(rec.get("agent") or "")
+    return (fb, "fallback") if fb else ("", "unknown")
+
+
+def input_price(model: str) -> tuple[float | None, str]:
+    """USD per token of uncached input for a provider/model, via the same lookup rule as OpenCode costs."""
+    if not model or "/" not in model:
+        return None, ""
+    prov, mid = model.split("/", 1)
+    price, basis = price_for(prov, mid)
+    return (price.get("input", 0) / 1e6, basis) if price else (None, "")
 
 
 def load_inspections() -> list[dict]:
@@ -197,11 +274,37 @@ def load_rows() -> list[dict]:
     return _cache["rows"]
 
 
-def aggregate(days: int) -> dict:
+DEFAULT_AGENT_MODELS = {"claude-code": "anthropic/claude-sonnet-5"}   # used only when a record carries no model
+
+
+def aggregate(days: int, agent_models: dict | None = None) -> dict:
+    agent_models = {**DEFAULT_AGENT_MODELS, **(agent_models or {})}
     rows = load_rows()
     since = datetime.now() - timedelta(days=days)
     keep = [r for r in rows if datetime.strptime(r["ts"][:19], "%Y-%m-%dT%H:%M:%S") >= since]
     summarized = [r for r in keep if not r.get("passthrough")]
+    opencode = load_opencode(days)
+    oc_msgs = opencode.pop("_msgs", [])
+    oc_sessions = opencode.pop("_sessions", {})
+
+    # price each summary's saved tokens at the input rate of the model that read it
+    saving = {"cost": 0.0, "by_how": defaultdict(int), "unpriced": 0}
+    saving_by_agent: dict[str, dict] = defaultdict(lambda: {"cost": 0.0, "models": set(), "unpriced": 0})
+    for r in summarized:
+        model, how = resolve_model(r, agent_models, oc_msgs, oc_sessions)
+        ppt, basis = input_price(model)
+        saved = max(0, r.get("tok_in", 0) - r.get("tok_out", 0))
+        r["_model"], r["_how"] = model, how
+        if ppt is None:
+            saving["unpriced"] += 1
+            saving_by_agent[r.get("agent") or "unknown"]["unpriced"] += 1
+            continue
+        r["_saved_cost"] = saved * ppt
+        saving["cost"] += saved * ppt
+        saving["by_how"][how] += 1
+        a = saving_by_agent[r.get("agent") or "unknown"]
+        a["cost"] += saved * ppt
+        a["models"].add(model if basis == model else f"{model} @ {basis}")
     tot = lambda rs, k: sum(r.get(k, 0) for r in rs)  # noqa: E731
     by_day: dict[str, dict] = defaultdict(lambda: {"calls": 0, "tok_in": 0, "tok_out": 0})
     by_agent: dict[str, dict] = defaultdict(lambda: {"calls": 0, "passthrough": 0, "tok_in": 0, "tok_out": 0, "lines_in": 0, "lines_out": 0})
@@ -240,11 +343,16 @@ def aggregate(days: int) -> dict:
     names = set(by_agent) | set(insp_by_agent)
     for name in names:
         s = by_agent.get(name, {"calls": 0, "passthrough": 0, "tok_in": 0, "tok_out": 0, "lines_in": 0, "lines_out": 0})
-        agents_out.append({"agent": name, **s, **insp_by_agent.get(name, {"inspected": 0, "rewritten": 0, "skipped": 0})})
+        sa = saving_by_agent.get(name, {"cost": 0.0, "models": set(), "unpriced": 0})
+        agents_out.append({"agent": name, **s, **insp_by_agent.get(name, {"inspected": 0, "rewritten": 0, "skipped": 0}),
+                           "saved_cost": sa["cost"], "priced_as": sorted(sa["models"]), "unpriced": sa["unpriced"]})
     agents_out.sort(key=lambda x: (-x["tok_in"], -x["inspected"]))
     recent_insp = sorted(insp, key=lambda r: r["ts"], reverse=True)[:40]
+    prices = load_prices()
     return {
-        "opencode": load_opencode(days),
+        "opencode": opencode,
+        "saving": {"cost": saving["cost"], "by_how": dict(saving["by_how"]), "unpriced": saving["unpriced"],
+                   "agent_models": agent_models, "model_choices": sorted(k for k in prices if k.startswith(("anthropic/", "openai/", "azure/")))},
         "inspect": {"total": len(insp), "rewritten": sum(1 for r in insp if r["decision"] == "rewrite"),
                     "skipped": sum(1 for r in insp if r["decision"].startswith("skip")),
                     "sources": [str(p) for p in INSPECT_LOGS], "recent": recent_insp},
@@ -260,7 +368,7 @@ def aggregate(days: int) -> dict:
         },
         "by_day": day_list,
         "by_agent": agents_out,
-        "recent": recent,
+        "recent": [{k: v for k, v in r.items() if not k.startswith("_")} | {"model": r.get("_model", r.get("model")), "model_how": r.get("_how"), "saved_cost": r.get("_saved_cost")} for r in recent],
         "latest": latest,
     }
 
@@ -294,13 +402,10 @@ details summary{cursor:pointer;color:var(--ink2)}
 @media (prefers-reduced-motion:no-preference){.bar{transition:opacity .15s}}
 </style></head><body><main>
 <div class="row" style="justify-content:space-between">
-  <div><h1>logsum · Drain3 token savings</h1><div class="sub" id="meta">loading…</div></div>
+  <div><h1>logsum · OpenCode usage and Drain3 savings</h1><div class="sub" id="meta">loading…</div></div>
   <div class="row"><label>Range <select id="days"><option value="7">7 days</option><option value="14" selected>14 days</option><option value="30">30 days</option><option value="90">90 days</option></select></label>
-  <label>Price $/Mtok <input id="price" type="number" step="0.25" min="0" value="3"></label><button id="refresh" type="button">Refresh</button></div>
+  <label title="Used only for Claude Code summaries recorded before the hook started reporting the session model">Price Claude Code as <select id="ccmodel"></select></label><button id="refresh" type="button">Refresh</button></div>
 </div>
-<div class="tiles" id="tiles"></div>
-<section class="panel"><div class="row" style="justify-content:space-between"><h2>Tokens per day</h2><div class="row"><div class="legend"><span><i style="background:var(--s1)"></i>read by the model</span><span><i style="background:var(--s2)"></i>saved by logsum</span></div><button id="tableToggle" type="button">Show as table</button></div></div>
-  <div id="chart"></div><div class="wrap" id="daytable" hidden></div></section>
 <section class="panel"><div class="row" style="justify-content:space-between"><h2>OpenCode usage, per model endpoint</h2><div class="sub" id="ocmeta"></div></div>
   <div class="tiles" id="octiles"></div>
   <div class="row" style="justify-content:space-between;margin-top:6px"><div class="legend"><span><i style="background:var(--s1)"></i>main agent</span><span><i style="background:var(--s3)"></i>subagents</span><span class="muted">tokens per day (input + output + cache)</span></div></div>
@@ -308,6 +413,10 @@ details summary{cursor:pointer;color:var(--ink2)}
   <div class="wrap" id="ocmodels"></div>
   <h2 style="margin-top:6px">OpenCode usage, per agent</h2><div class="sub">Main and subagent sessions are kept apart, so a build agent on one model and an explore or logs subagent on another never get mixed.</div>
   <div class="wrap" id="ocagents"></div></section>
+<h2 style="margin-top:4px">Drain3 log summaries (logsum)</h2>
+<div class="tiles" id="tiles"></div>
+<section class="panel"><div class="row" style="justify-content:space-between"><h2>Tokens per day</h2><div class="row"><div class="legend"><span><i style="background:var(--s1)"></i>read by the model</span><span><i style="background:var(--s2)"></i>saved by logsum</span></div><button id="tableToggle" type="button">Show as table</button></div></div>
+  <div id="chart"></div><div class="wrap" id="daytable" hidden></div></section>
 <section class="panel"><h2>Latest summary, how Drain3 saw it</h2><div id="latest" class="tpl"></div></section>
 <section class="panel"><h2>By agent</h2><div class="wrap" id="agents"></div></section>
 <section class="panel"><h2>Recent summaries</h2><div class="wrap" id="recent"></div></section>
@@ -318,10 +427,12 @@ details summary{cursor:pointer;color:var(--ink2)}
 const $=s=>document.querySelector(s);const fmt=n=>n.toLocaleString();const k=n=>n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(n>=1e4?0:1)+'k':String(n);
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const wild=s=>esc(s).replace(/&lt;([^&]*?)&gt;/g,'<span class="w">&lt;$1&gt;</span>');
-try{const p=localStorage.getItem('logsum.price');if(p)$('#price').value=p;const d=localStorage.getItem('logsum.days');if(d)$('#days').value=d;}catch{}
+let ccModel='';try{ccModel=localStorage.getItem('logsum.ccmodel')||'';const d=localStorage.getItem('logsum.days');if(d)$('#days').value=d;}catch{}
 let data=null;
-async function load(){const days=$('#days').value;const r=await fetch('/api/stats?days='+days);data=await r.json();render();}
-function render(){const t=data.totals,price=parseFloat($('#price').value)||0;const saved=t.tok_in-t.tok_out;const pct=t.tok_in?saved/t.tok_in:0;
+async function load(){const days=$('#days').value;const am=ccModel?'&agent_models='+encodeURIComponent('claude-code:'+ccModel):'';const r=await fetch('/api/stats?days='+days+am);data=await r.json();render();}
+function render(){const t=data.totals;const saved=t.tok_in-t.tok_out;const pct=t.tok_in?saved/t.tok_in:0;const sv=data.saving||{cost:0,by_how:{},unpriced:0,agent_models:{},model_choices:[]};
+const sel=$('#ccmodel');const cur=sv.agent_models['claude-code']||'';if(sel.options.length!==sv.model_choices.length){sel.innerHTML=sv.model_choices.map(m=>`<option value="${m}">${m}</option>`).join('');}sel.value=cur;
+const how=sv.by_how;const howTxt=[how.recorded?`${how.recorded} by session model`:'',how['opencode-session']?`${how['opencode-session']} by OpenCode session`:'',how['opencode-db']?`${how['opencode-db']} by nearest OpenCode message`:'',how.fallback?`${how.fallback} by fallback`:'',sv.unpriced?`${sv.unpriced} unpriced`:''].filter(Boolean).join(' · ');
 $('#meta').textContent=`${data.stats_file} · updated ${data.generated} · ${t.exact_tokens?'exact cl100k counts':'estimated counts (install tiktoken for exact)'} · avg ${t.ms_avg} ms per summary`;
 const ins=data.inspect||{total:0,rewritten:0,skipped:0};
 $('#tiles').innerHTML=[
@@ -330,7 +441,7 @@ $('#tiles').innerHTML=[
  ['Tokens before','',k(t.tok_in),`${fmt(t.lines_in)} log lines`],
  ['Tokens after','',k(t.tok_out),`${fmt(t.lines_out)} lines shown to the model`],
  ['Saved','hero',`${(pct*100).toFixed(0)}%`,`${fmt(saved)} tokens not sent`],
- ['Est. cost saved','hero','$'+(saved/1e6*price).toFixed(2),`at $${price}/Mtok input`]
+ ['Cost saved','hero','$'+sv.cost.toFixed(sv.cost<1?4:2),`at each model's own input rate · ${howTxt||'no summaries'}`]
 ].map(([l,c,v,d])=>`<div class="tile ${c}"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
 chart();opencode();latest();agents();recent();}
 function opencode(){const oc=data.opencode;if(!oc||!oc.available){$('#ocmeta').textContent='';$('#octiles').innerHTML='';$('#occhart').innerHTML='';$('#ocmodels').innerHTML=`<div class="empty">OpenCode database not found at ${esc(oc?oc.db:'?')}${oc&&oc.error?' ('+esc(oc.error)+')':''}. Mount it or set LOGSUM_OPENCODE_DB.</div>`;$('#ocagents').innerHTML='';return;}
@@ -368,12 +479,12 @@ $('#daytable').innerHTML=`<table><tr><th>day</th><th class="n">summaries</th><th
 function latest(){const r=data.latest;if(!r){$('#latest').innerHTML='<div class="empty">No summaries yet. Read a log of more than 40 lines through an agent and it will appear here.</div>';return;}
 $('#latest').innerHTML=`<div class="sub">${esc(r.ts)} · ${esc(r.agent)} · <code>${esc(r.cmd||'(command not recorded)')}</code><br>${fmt(r.lines_in)} lines → ${r.templates} templates, ${fmt(r.rare_lines)} rare lines kept · ${fmt(r.tok_in)} → ${fmt(r.tok_out)} tokens in ${r.ms} ms</div>`+(r.top||[]).map(([c,t])=>`<div><b>${fmt(c)}×</b><span>${wild(t)}</span></div>`).join('');}
 function agents(){const a=data.by_agent;if(!a.length){$('#agents').innerHTML='<div class="empty">no calls in range</div>';return;}
-$('#agents').innerHTML=`<table><tr><th>agent</th><th class="n">commands seen</th><th class="n">log reads</th><th class="n">summaries</th><th class="n">passed through</th><th class="n">lines in → out</th><th class="n">tokens before</th><th class="n">after</th><th class="n">saved</th></tr>${a.map(x=>`<tr><td>${esc(x.agent)}</td><td class="n">${fmt(x.inspected||0)}</td><td class="n">${fmt(x.rewritten||0)}</td><td class="n">${x.calls-x.passthrough}</td><td class="n">${x.passthrough}</td><td class="n">${fmt(x.lines_in)} → ${fmt(x.lines_out)}</td><td class="n">${fmt(x.tok_in)}</td><td class="n">${fmt(x.tok_out)}</td><td class="n">${x.tok_in?Math.round((1-x.tok_out/x.tok_in)*100):0}%</td></tr>`).join('')}</table>`;
+$('#agents').innerHTML=`<table><tr><th>agent</th><th class="n">commands seen</th><th class="n">log reads</th><th class="n">summaries</th><th class="n">passed through</th><th class="n">lines in → out</th><th class="n">tokens before</th><th class="n">after</th><th class="n">saved</th><th class="n">cost saved</th><th>priced as</th></tr>${a.map(x=>`<tr><td>${esc(x.agent)}</td><td class="n">${fmt(x.inspected||0)}</td><td class="n">${fmt(x.rewritten||0)}</td><td class="n">${x.calls-x.passthrough}</td><td class="n">${x.passthrough}</td><td class="n">${fmt(x.lines_in)} → ${fmt(x.lines_out)}</td><td class="n">${fmt(x.tok_in)}</td><td class="n">${fmt(x.tok_out)}</td><td class="n">${x.tok_in?Math.round((1-x.tok_out/x.tok_in)*100):0}%</td><td class="n">$${(x.saved_cost||0).toFixed(4)}${x.unpriced?` <span class="muted" title="${x.unpriced} summaries could not be priced">?</span>`:''}</td><td>${(x.priced_as||[]).map(m=>`<code>${esc(m)}</code>`).join(' ')||'<span class="muted">—</span>'}</td></tr>`).join('')}</table>`;
 const ri=(data.inspect&&data.inspect.recent)||[];$('#inspections').innerHTML=ri.length?`<table><tr><th>time (UTC)</th><th>agent</th><th>decision</th><th>command</th></tr>${ri.map(r=>`<tr><td>${esc(r.ts.slice(0,19).replace('T',' '))}</td><td>${esc(r.agent)}</td><td>${esc(r.decision)}</td><td><code>${esc(r.cmd.slice(0,110))}</code></td></tr>`).join('')}</table>`:'<div class="empty">no hook activity recorded (set LOGSUM_INSPECT_LOGS for the service)</div>';}
 function recent(){const rs=data.recent;if(!rs.length){$('#recent').innerHTML='<div class="empty">nothing recorded yet</div>';return;}
-$('#recent').innerHTML=`<table><tr><th>time</th><th>agent</th><th>command</th><th class="n">lines</th><th class="n">tokens</th><th class="n">saved</th><th class="n">ms</th></tr>${rs.map(r=>{const p=r.passthrough;return `<tr><td>${esc(r.ts.slice(0,19).replace('T',' '))}</td><td>${esc(r.agent)}</td><td><code>${esc((r.cmd||'').slice(0,80))}</code>${p?' <span class="muted">(passthrough)</span>':(r.top&&r.top.length?`<details><summary>${r.templates} templates</summary><div class="tpl">${r.top.map(([c,t])=>`<div><b>${fmt(c)}×</b><span>${wild(t)}</span></div>`).join('')}</div></details>`:'')}</td><td class="n">${fmt(r.lines_in)} → ${fmt(r.lines_out)}</td><td class="n">${fmt(r.tok_in)} → ${fmt(r.tok_out)}</td><td class="n">${p?'—':Math.round((1-r.tok_out/Math.max(1,r.tok_in))*100)+'%'}</td><td class="n">${r.ms??''}</td></tr>`}).join('')}</table>`;}
+$('#recent').innerHTML=`<table><tr><th>time</th><th>agent</th><th>command</th><th class="n">lines</th><th class="n">tokens</th><th class="n">saved</th><th>read by</th><th class="n">cost saved</th><th class="n">ms</th></tr>${rs.map(r=>{const p=r.passthrough;const howTag={recorded:'',"opencode-session":'',"opencode-db":' <span class="muted" title="matched to the next OpenCode assistant message in time; the plugin now records the session id, which is exact">(nearest)</span>',fallback:' <span class="muted" title="fallback model from the selector above">(fallback)</span>',unknown:''}[r.model_how||'unknown']||'';return `<tr><td>${esc(r.ts.slice(0,19).replace('T',' '))}</td><td>${esc(r.agent)}</td><td><code>${esc((r.cmd||'').slice(0,80))}</code>${p?' <span class="muted">(passthrough)</span>':(r.top&&r.top.length?`<details><summary>${r.templates} templates</summary><div class="tpl">${r.top.map(([c,t])=>`<div><b>${fmt(c)}×</b><span>${wild(t)}</span></div>`).join('')}</div></details>`:'')}</td><td class="n">${fmt(r.lines_in)} → ${fmt(r.lines_out)}</td><td class="n">${fmt(r.tok_in)} → ${fmt(r.tok_out)}</td><td class="n">${p?'—':Math.round((1-r.tok_out/Math.max(1,r.tok_in))*100)+'%'}</td><td>${p?'':(r.model?`<code>${esc(r.model)}</code>${howTag}`:'<span class="muted">unknown</span>')}</td><td class="n">${p||r.saved_cost==null?'—':'$'+r.saved_cost.toFixed(4)}</td><td class="n">${r.ms??''}</td></tr>`}).join('')}</table>`;}
 $('#days').addEventListener('change',()=>{try{localStorage.setItem('logsum.days',$('#days').value)}catch{}load();});
-$('#price').addEventListener('input',()=>{try{localStorage.setItem('logsum.price',$('#price').value)}catch{}if(data)render();});
+$('#ccmodel').addEventListener('change',()=>{ccModel=$('#ccmodel').value;try{localStorage.setItem('logsum.ccmodel',ccModel)}catch{}load();});
 $('#refresh').addEventListener('click',load);
 $('#tableToggle').addEventListener('click',()=>{const t=$('#daytable');t.hidden=!t.hidden;$('#chart').hidden=!t.hidden;$('#tableToggle').textContent=t.hidden?'Show as table':'Show as chart';});
 load();setInterval(load,15000);
@@ -384,8 +495,15 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         u = urlparse(self.path)
         if u.path == "/api/stats":
-            days = max(1, min(365, int(parse_qs(u.query).get("days", ["14"])[0])))
-            body = json.dumps(aggregate(days)).encode()
+            q = parse_qs(u.query)
+            days = max(1, min(365, int(q.get("days", ["14"])[0])))
+            # ?agent_models=claude-code:anthropic/claude-sonnet-5,other-agent:openai/gpt-5.6-luna
+            am = {}
+            for pair in q.get("agent_models", [""])[0].split(","):
+                if ":" in pair:
+                    a, m = pair.split(":", 1)
+                    am[a.strip()] = m.strip()
+            body = json.dumps(aggregate(days, am)).encode()
             self._send(200, "application/json; charset=utf-8", body)
         elif u.path in ("/", "/index.html"):
             self._send(200, "text/html; charset=utf-8", PAGE.encode())

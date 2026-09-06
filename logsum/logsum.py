@@ -6,7 +6,8 @@ log-reading command is safe. Rare templates and the tail of the log are kept ver
 Every call is recorded to a JSONL stats file (default ~/.local/share/logsum/stats.jsonl)
 *after* the output has been written and flushed, in a forked child, so the agent never
 waits for token counting. Optional env: LOGSUM_AGENT (who called), LOGSUM_CMD_B64
-(base64 of the command that produced the log), LOGSUM_STATS (file path), LOGSUM_NOSTATS=1.
+(base64 of the command that produced the log), LOGSUM_MODEL (provider/model that will read
+the summary, used to price the saving), LOGSUM_STATS (file path), LOGSUM_NOSTATS=1.
 """
 import base64
 import json
@@ -50,7 +51,8 @@ def count_tokens(text: str) -> tuple[int, str]:
         return len(re.findall(r"[A-Za-z]+|\d{1,3}|[^\w\s]|_", text)), "estimate"
 
 
-def record_stats(raw: str, out: str, meta: dict, agent: str | None = None, cmd_b64: str | None = None) -> None:
+def record_stats(raw: str, out: str, meta: dict, agent: str | None = None, cmd_b64: str | None = None,
+                 model: str | None = None, session: str | None = None) -> None:
     """Append one JSON line. CLI mode calls this in a forked child; the server calls it from a thread."""
     if os.environ.get("LOGSUM_NOSTATS"):
         return
@@ -65,6 +67,8 @@ def record_stats(raw: str, out: str, meta: dict, agent: str | None = None, cmd_b
     rec = {
         "ts": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "agent": agent or os.environ.get("LOGSUM_AGENT", "unknown"),
+        "model": model or os.environ.get("LOGSUM_MODEL", "") or None,   # provider/model that will read the summary, if the caller knows it
+        "session": session or os.environ.get("LOGSUM_SESSION", "") or None,   # OpenCode session id, if the caller knows it
         "cmd": cmd[:200],
         "lines_in": raw.count("\n") + (1 if raw and not raw.endswith("\n") else 0),
         "lines_out": out.count("\n") + (1 if out and not out.endswith("\n") else 0),

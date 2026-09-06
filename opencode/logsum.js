@@ -34,9 +34,11 @@ function audit(decision, detail, cmd) {
   try { appendFileSync(AUDIT, `${new Date().toISOString()}\topencode\t${decision}\t${detail}\t${String(cmd || "").replace(/\s+/g, " ").slice(0, 300)}\n`); } catch {}
 }
 
-function summarize(text, cmd) {
-  // agent name + base64 command go to the stats dashboard (logsum-stats)
-  const env = { ...process.env, LOGSUM_AGENT: "opencode", LOGSUM_CMD_B64: Buffer.from(String(cmd || ""), "utf8").toString("base64") };
+function summarize(text, cmd, sessionID) {
+  // agent name, base64 command and the OpenCode session id go to the stats dashboard; the session id lets
+  // the dashboard look up exactly which model (main agent or subagent) read this summary.
+  const env = { ...process.env, LOGSUM_AGENT: "opencode", LOGSUM_SESSION: String(sessionID || ""),
+                LOGSUM_CMD_B64: Buffer.from(String(cmd || ""), "utf8").toString("base64") };
   return execFileSync(LOGSUM, { input: text, encoding: "utf8", timeout: 20000, maxBuffer: 64 * 1024 * 1024, env });
 }
 
@@ -59,7 +61,7 @@ export const LogsumPlugin = async () => ({
 
       // read tool prints "NNNNN| line"; strip the prefix so templates are about the log, not the numbering
       const body = input.tool === "read" ? text.replace(/^\d+\|\s?/gm, "") : text;
-      const summary = summarize(body, cmd);
+      const summary = summarize(body, cmd, input.sessionID);
       if (!summary || summary.length >= body.length) { audit("nogain", input.tool, cmd); return; }
       output.output = summary;
       output.metadata = { ...(output.metadata || {}), logsum: true, originalBytes: text.length };

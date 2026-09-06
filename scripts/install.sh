@@ -47,5 +47,5 @@ fi
 echo "== self test"
 printf 'a\nb\nc\n' | logsum | wc -l | xargs echo "passthrough lines (expect 3):"
 python3 "$REPO/scripts/make-sample-log.py" > /tmp/logsum-sample.log
-LOGSUM_AGENT=install-test logsum < /tmp/logsum-sample.log | head -3
+LOGSUM_NOSTATS=1 LOGSUM_AGENT=install-test logsum < /tmp/logsum-sample.log | head -3
 echo "done. Next: scripts/install-opencode-plugin.sh, and on Windows claude-code\\install.ps1"

@@ -151,11 +151,29 @@ result used to be, and the model's answer quotes the template counts.
 
 ## Dashboard
 
-Tiles for commands seen, summaries, tokens before and after, percent saved and
-estimated cost; a tokens-per-day chart; the latest summary as Drain3 saw it;
-per-agent totals; recent summaries; and every shell command the hooks looked at
-with the decision taken. Token counts are exact cl100k when tiktoken is installed
-(it is, via `logsum/pyproject.toml`).
+OpenCode usage comes first, then the Drain3 block: tiles for commands seen,
+summaries, tokens before and after, percent saved and cost saved; a
+tokens-per-day chart; the latest summary as Drain3 saw it; per-agent totals;
+recent summaries; and every shell command the hooks looked at with the decision
+taken. Token counts are exact cl100k when tiktoken is installed (it is, via
+`logsum/pyproject.toml`).
+
+**Cost saved is priced per model, not at a flat rate.** Each summary's saved
+tokens are charged at the *input* price of the model that read it:
+
+- Claude Code: the hook reads the session model from the transcript Claude Code
+  passes it and sends it along (`LOGSUM_MODEL`), so a Fable session is priced at
+  Fable's rate and a Haiku session at Haiku's.
+- OpenCode: the summary is matched to the next assistant message in OpenCode's
+  database (within 15 minutes), which names the model, including subagent runs.
+- Records with no model (older ones, other agents) use a per-agent fallback; the
+  "Price Claude Code as" selector at the top sets it for Claude Code, or pass
+  `?agent_models=agent:provider/model,...` to `/api/stats`.
+
+The tile says how many summaries were priced by which method, and the per-agent
+and recent-summary tables show the model each one was priced as. Prices come from
+the same table as OpenCode costs (`logsum/prices.json`), with the same fallback
+rule for custom providers.
 
 **OpenCode usage** is read straight from OpenCode's SQLite database
 (`~/.local/share/opencode/opencode.db`, mounted read-only into the container and

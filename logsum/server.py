@@ -35,6 +35,8 @@ class Handler(logsum_stats.Handler):
         raw = self.rfile.read(n).decode("utf-8", "replace").lstrip("﻿")
         agent = self.headers.get("X-Logsum-Agent", "unknown")
         cmd_b64 = self.headers.get("X-Logsum-Cmd-B64", "")
+        model = self.headers.get("X-Logsum-Model", "") or None
+        session = self.headers.get("X-Logsum-Session", "") or None
         lines = raw.splitlines()
         try:
             if len(lines) <= logsum.PASSTHROUGH_LINES:
@@ -46,8 +48,10 @@ class Handler(logsum_stats.Handler):
             out, meta = f"[logsum failed: {e!r}; raw output follows]\n" + raw, {"passthrough": True, "templates": 0, "rare_lines": 0, "top": [], "error": repr(e)}
         meta["ms"] = round((time.perf_counter() - t0) * 1000)
         self._send(200, "text/plain; charset=utf-8", out.encode("utf-8"))
+        if self.headers.get("X-Logsum-NoStats"):
+            return   # self-tests and probes: summarize but do not count
         # record after responding; the client never waits for token counting
-        threading.Thread(target=logsum.record_stats, args=(raw, out, meta), kwargs={"agent": agent, "cmd_b64": cmd_b64}, daemon=True).start()
+        threading.Thread(target=logsum.record_stats, args=(raw, out, meta), kwargs={"agent": agent, "cmd_b64": cmd_b64, "model": model, "session": session}, daemon=True).start()
 
 
 def main():
